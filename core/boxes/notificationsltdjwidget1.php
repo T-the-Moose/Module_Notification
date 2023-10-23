@@ -99,7 +99,7 @@ class notificationsltdjwidget1 extends ModeleBoxes
 
 		parent::__construct($db, $param);
 
-		$this->boxlabel = $langs->transnoentitiesnoconv("MyWidget");
+		$this->boxlabel = $langs->transnoentitiesnoconv("Boîte de notification(s)");
 
 		$this->param = $param;
 
@@ -115,22 +115,22 @@ class notificationsltdjwidget1 extends ModeleBoxes
 	 */
 	public function loadBox($max = 5)
 	{
-		global $langs;
+		global $langs, $db;
 
 		// Use configuration value for max lines count
 		$this->max = $max;
 
-		//dol_include_once("/notificationsltdj/class/notificationsltdj.class.php");
+		//dol_include_once("/notifications/class/notifications.class.php");
 
 		// Populate the head at runtime
-		$text = $langs->trans("NotificationsLTDJBoxDescription", $max);
+		$text = $langs->trans("Notification(s) importante(s)", $max);
 		$this->info_box_head = array(
 			// Title text
-			'text' => $text,
+			'text' => '<p class="bold" style=color:red;">!! ' .$text .' !!</p>',
 			// Add a link
-			'sublink' => 'http://example.com',
+//			'sublink' => 'http://example.com',
 			// Sublink icon placed after the text
-			'subpicto' => 'object_notificationsltdj@notificationsltdj',
+			'subpicto' => 'object_notificationsproduit@notificationsproduit',
 			// Sublink icon HTML alt text
 			'subtext' => '',
 			// Sublink HTML target
@@ -143,63 +143,95 @@ class notificationsltdjwidget1 extends ModeleBoxes
 			'graph' => false
 		);
 
-		// Populate the contents at runtime
-		$this->info_box_contents = array(
-			0 => array( // First line
-				0 => array( // First Column
-					//  HTML properties of the TR element. Only available on the first column.
-					'tr' => 'class="left"',
-					// HTML properties of the TD element
-					'td' => '',
+		$produit = new Product($db);
 
-					// Main text for content of cell
-					'text' => 'First cell of first line',
-					// Link on 'text' and 'logo' elements
-					'url' => 'http://example.com',
-					// Link's target HTML property
-					'target' => '_blank',
-					// Fist line logo (deprecated. Include instead logo html code into text or text2, and set asis property to true to avoid HTML cleaning)
-					//'logo' => 'monmodule@monmodule',
-					// Unformatted text, added after text. Usefull to add/load javascript code
-					'textnoformat' => '',
+		$notificationProduit = new Notifs($db);
+		$notifs = $notificationProduit->fetchAll();
 
-					// Main text for content of cell (other method)
-					//'text2' => '<p><strong>Another text</strong></p>',
+		// Vérifier s'il y a des résultats
+		if ($notifs > 0) {
 
-					// Truncates 'text' element to the specified character length, 0 = disabled
-					'maxlength' => 0,
-					// Prevents HTML cleaning (and truncation)
-					'asis' => false,
-					// Same for 'text2'
-					'asis2' => true
+			// Créer un tableau pour stocker les lignes de la boîte
+			$info_box_contents = array();
+
+			$product_info2 = array(
+				0 => array(
+					'tr' => 'class="center bold" style="color:mediumblue;"',
+					'text' => 'Action',
 				),
-				1 => array( // Another column
-					// No TR for n≠0
-					'td' => '',
-					'text' => 'Second cell',
-				)
-			),
-			1 => array( // Another line
-				0 => array( // TR
-					'tr' => 'class="left"',
-					'text' => 'Another line'
+				1 => array(
+					'tr' => 'class="center bold"',
+					'text' => 'Réference',
 				),
-				1 => array( // TR
-					'tr' => 'class="left"',
-					'text' => ''
-				)
-			),
-			2 => array( // Another line
-				0 => array( // TR
-					'tr' => 'class="left"',
-					'text' => ''
+				2 => array(
+					'tr' => 'class="center bold" ',
+					'text' => 'Modification',
 				),
-				1 => array( // TR
-					'tr' => 'class="left"',
-					'text' => ''
-				)
-			),
-		);
+				3 => array(
+					'tr' => 'class="center bold"',
+					'text' => 'Action',
+				),
+				4 => array(
+					'tr' => 'class="center bold"',
+					'text' => 'Validation',
+				),
+			);
+
+			$info_box_contents[] = $product_info2;
+
+			// Parcourir les résultats
+			foreach ($notifs as $notif) {
+				// Accéder aux colonnes de chaque ligne
+				$ref_produit = $notif->ref;
+				$id_notification = $notif->id;
+				$utilisateur_modificateur = $notif->user_modif;
+				$text_modification = $notif->text;
+
+				if ($notif->action === 'PRODUCT_CREATE') {
+					$notif_action = "Produit créé";
+				} else if ($notif->action === 'PRODUCT_MODIFY') {
+					$notif_action = "Produit modifié";
+				} else if ($notif->action === 'PRODUCT_DELETE') {
+					$notif_action = "Produit supprimé";
+				}
+
+				// Afficher le lien de la ref produit avec getNomUrl()
+				if ($produit->fetch('', $ref_produit)) {
+					$ref_produit = $produit->getNomUrl(1);
+				}
+				// Créer un tableau pour stocker les informations de chaque produit
+				$product_info = array(
+					0 => array(
+						'td' => 'class="center"',
+						'text' => $notif_action,
+					),
+					1 => array(
+						'td' => 'class="center"',
+						'text' => $ref_produit,
+						'asis' => 1,
+					),
+					2 => array(
+						'td' => 'class="center"',
+						'text' => $utilisateur_modificateur,
+					),
+					3 => array(
+						'td' => 'class="center"',
+						'text' => $text_modification,
+					),
+					4 => array(
+						'td' => 'class="monBouton center"' . "id=" . $id_notification,
+						'text' => '<span><i class="fa fa-check"></i></span>',
+					),
+				);
+				// Ajoute les informations du produit au tableau de la boxe
+				$info_box_contents[] = $product_info;
+
+			}
+			// Affecte le tableau d'informations à la boxe
+			$this->info_box_contents = $info_box_contents;
+		} else {
+			echo "Aucune donnée trouvée dans la table.";
+		}
 	}
 
 	/**
