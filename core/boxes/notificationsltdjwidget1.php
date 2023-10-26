@@ -186,7 +186,7 @@ class notificationsltdjwidget1 extends ModeleBoxes
 				$utilisateur_modificateur = $notif->fk_user_modif;
 				$text_modification = $notif->text;
 
-				if ($notif->action === 'PRODUCT_CREATE') {
+				if ($notif->type === 'PRODUCT_CREATE') {
 					$notif_action = "Produit créé";
 				} else if ($notif->type === 'PRODUCT_MODIFY') {
 					$notif_action = "Produit modifié";

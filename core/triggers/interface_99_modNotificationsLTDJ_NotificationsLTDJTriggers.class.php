@@ -54,9 +54,34 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 		// 'development', 'experimental', 'dolibarr' or version
 		$this->version = 'development';
 		$this->picto = 'notificationsltdj@notificationsltdj';
-
-
 	}
+
+	/**
+	 * Factory method for Notifs
+	 *
+	 **/
+	private function createNotifs(User $user, $object, $type, $text = ''): Notifs
+	{
+		global $db;
+		$now = dol_now();
+		$notif = new Notifs($db);
+
+		if ($notif) {
+			$notif->entity = $user->entity;
+			$notif->ref = $object->ref;
+			$notif->type = $type;
+			$notif->label = addslashes($object->label);
+			$notif->date_creation = $this->db->idate($now);
+			$notif->tms = $now;
+			$notif->fk_user_modif = $user->id;
+			$notif->text = $text;
+
+			return $notif;
+		} else {
+			throw new \Exception('Erreur lors de la création de la notification');
+		}
+	}
+
 
 	/**
 	 * Trigger name
@@ -76,6 +101,15 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 	public function getDesc()
 	{
 		return $this->description;
+	}
+
+	/**
+	 * Trigger manager for notifications
+	 *
+	 */
+
+	public function manageNotifications() {
+
 	}
 
 
@@ -324,88 +358,44 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 				dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
 				break;
 		}
-
 		return 0;
 	}
 
 	private function produitCree(string $action, Product $object, User $user, Translate $langs, Conf $conf): void
 	{
-		global $db;
-		$now = dol_now();
-		$notif = new Notifs($db);
-
+		$notif = $this->createNotifs($user, $object, "PRODUCT_CREATE", $user->login . " a créé un produit");
 		if ($notif) {
-			$notif->entity = $user->entity;
-			$notif->ref = $object->ref;
-			$notif->type = "PRODUCT_CREATE";
-			$notif->label = addslashes($object->label);
-			$notif->date_creation = $this->db->idate($now);
-			$notif->tms = $now;
-			$notif->fk_user_modif = $user->id;
-			$notif->text = $notif->text . "Créé par " . $user->login;
-			$notif->type = "PRODUCT_CREATE";
-
 			$notif->create($user);
-		} else {
-			echo 'Requête de création de notification erronée';
 		}
 	}
 
 	private function produitModifie(string $action, Product $object, User $user, Translate $langs, Conf $conf): void
 	{
-		global $db;
-		$now = dol_now();
-		$notif = new Notifs($db);
+		$text = '';
 
+		// Vérification des anciennes ref et label
+		if ($object->ref != $object->oldcopy->ref) {
+			$text .= "Ancienne réf : " . $object->oldcopy->ref . ". ";
+		}
+		if ($object->label != $object->oldcopy->label) {
+			$text .= "Ancien label : " . $object->oldcopy->label . ". ";
+		}
+		if ($object->label == $object->oldcopy->label || $object->ref == $object->oldcopy->ref) {
+			$text .= "Modification d'un prix";
+		}
+
+		$notif = $this->createNotifs($user, $object, "PRODUCT_MODIFY", $text);
 		if ($notif) {
-			$notif->entity = $user->entity;
-			$notif->ref = $object->ref;
-			$notif->type = "PRODUCT_MODIFY";
-			$notif->label = addslashes($object->label);
-			$notif->date_creation = $this->db->idate($now);
-			$notif->tms = $now;
-			$notif->fk_user_modif = $user->id;
-			$notif->text = '';
-
-			// Vérification des anciennes ref et label
-			if ($notif->ref != $object->oldcopy->ref) {
-				$notif->text = $notif->text."Ancienne réf : ".$object->oldcopy->ref.". ";
-			}
-			if ($notif->label != $object->oldcopy->label) {
-				$notif->text = $notif->text."Ancien label : ".$object->oldcopy->label.". ";
-			}
-			if ($notif-> label == $object->oldcopy->label || $notif->ref == $object->oldcopy->ref) {
-				$notif->text = $notif->text."Modification d'un prix";
-			}
-
 			$notif->create($user);
-
-		} else {
-			echo 'Requête de modification de notification erronée';
 		}
 	}
 
 	private function produitSupprime(string $action, Product $object, User $user, Translate $langs, Conf $conf): void
 	{
-		global $db;
-		$now = dol_now();
-		$notif = new Notifs($db);
-
+		$notif = $this->createNotifs($user, $object, "PRODUCT_DELETE", $user->login . " a supprimé un produit");
 		if ($notif) {
-			$notif->entity = $user->entity;
-			$notif->ref = $object->ref;
-			$notif->type = "PRODUCT_DELETE";
-			$notif->label = addslashes($object->label);
-			$notif->date_creation = $this->db->idate($now);
-			$notif->tms = $now;
-			$notif->fk_user_modif = $user->id;
-			$notif->text = $notif->text . "Supprimé par " . $user->login;
-			$notif->type = "PRODUCT_DELETE";
-
 			$notif->create($user);
-		} else {
-			echo 'Requête de suppression de notification erronée';
 		}
-
 	}
+
 }
