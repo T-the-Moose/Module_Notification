@@ -260,7 +260,7 @@ $now = dol_now();
 
 //$help_url = "EN:Module_Notifs|FR:Module_Notifs_FR|ES:Módulo_Notifs";
 $help_url = '';
-$title = $langs->trans("Notifss");
+$title = $langs->trans("Notifs");
 $morejs = array();
 $morecss = array();
 

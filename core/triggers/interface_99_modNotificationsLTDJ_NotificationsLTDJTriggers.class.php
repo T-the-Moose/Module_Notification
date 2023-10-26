@@ -31,11 +31,12 @@
  */
 
 require_once DOL_DOCUMENT_ROOT.'/core/triggers/dolibarrtriggers.class.php';
-
+require_once DOL_DOCUMENT_ROOT .'/custom/notificationsltdj/core/boxes/notificationsltdjwidget1.php';
 
 /**
  *  Class of triggers for NotificationsLTDJ module
  */
+
 class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 {
 	/**
@@ -53,6 +54,8 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 		// 'development', 'experimental', 'dolibarr' or version
 		$this->version = 'development';
 		$this->picto = 'notificationsltdj@notificationsltdj';
+
+
 	}
 
 	/**
@@ -140,9 +143,15 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 			//case 'CONTACT_ENABLEDISABLE':
 
 			// Products
-			//case 'PRODUCT_CREATE':
-			//case 'PRODUCT_MODIFY':
-			//case 'PRODUCT_DELETE':
+			case 'PRODUCT_CREATE':
+				$this->produitCree($action, $object, $user, $langs, $conf);
+				break;
+			case 'PRODUCT_MODIFY':
+				$this->produitModifie($action, $object, $user, $langs, $conf);
+				break;
+			case 'PRODUCT_DELETE':
+				$this->produitSupprime($action, $object, $user, $langs, $conf);
+				break;
 			//case 'PRODUCT_PRICE_MODIFY':
 			//case 'PRODUCT_SET_MULTILANGS':
 			//case 'PRODUCT_DEL_MULTILANGS':
@@ -311,13 +320,92 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 			//case 'SHIPPING_REOPEN':
 			//case 'SHIPPING_DELETE':
 
-			// and more...
-
 			default:
 				dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
 				break;
 		}
 
 		return 0;
+	}
+
+	private function produitCree(string $action, Product $object, User $user, Translate $langs, Conf $conf): void
+	{
+		global $db;
+		$now = dol_now();
+		$notif = new Notifs($db);
+
+		if ($notif) {
+			$notif->entity = $user->entity;
+			$notif->ref = $object->ref;
+			$notif->type = "PRODUCT_CREATE";
+			$notif->label = addslashes($object->label);
+			$notif->date_creation = $this->db->idate($now);
+			$notif->tms = $now;
+			$notif->fk_user_modif = $user->id;
+			$notif->text = $notif->text . "Créé par " . $user->login;
+			$notif->type = "PRODUCT_CREATE";
+
+			$notif->create($user);
+		} else {
+			echo 'Requête de création de notification erronée';
+		}
+	}
+
+	private function produitModifie(string $action, Product $object, User $user, Translate $langs, Conf $conf): void
+	{
+		global $db;
+		$now = dol_now();
+		$notif = new Notifs($db);
+
+		if ($notif) {
+			$notif->entity = $user->entity;
+			$notif->ref = $object->ref;
+			$notif->type = "PRODUCT_MODIFY";
+			$notif->label = addslashes($object->label);
+			$notif->date_creation = $this->db->idate($now);
+			$notif->tms = $now;
+			$notif->fk_user_modif = $user->id;
+			$notif->text = '';
+
+			// Vérification des anciennes ref et label
+			if ($notif->ref != $object->oldcopy->ref) {
+				$notif->text = $notif->text."Ancienne réf : ".$object->oldcopy->ref.". ";
+			}
+			if ($notif->label != $object->oldcopy->label) {
+				$notif->text = $notif->text."Ancien label : ".$object->oldcopy->label.". ";
+			}
+			if ($notif-> label == $object->oldcopy->label || $notif->ref == $object->oldcopy->ref) {
+				$notif->text = $notif->text."Modification d'un prix";
+			}
+
+			$notif->create($user);
+
+		} else {
+			echo 'Requête de modification de notification erronée';
+		}
+	}
+
+	private function produitSupprime(string $action, Product $object, User $user, Translate $langs, Conf $conf): void
+	{
+		global $db;
+		$now = dol_now();
+		$notif = new Notifs($db);
+
+		if ($notif) {
+			$notif->entity = $user->entity;
+			$notif->ref = $object->ref;
+			$notif->type = "PRODUCT_DELETE";
+			$notif->label = addslashes($object->label);
+			$notif->date_creation = $this->db->idate($now);
+			$notif->tms = $now;
+			$notif->fk_user_modif = $user->id;
+			$notif->text = $notif->text . "Supprimé par " . $user->login;
+			$notif->type = "PRODUCT_DELETE";
+
+			$notif->create($user);
+		} else {
+			echo 'Requête de suppression de notification erronée';
+		}
+
 	}
 }

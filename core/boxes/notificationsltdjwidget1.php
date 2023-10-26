@@ -26,9 +26,8 @@
  */
 
 include_once DOL_DOCUMENT_ROOT."/core/boxes/modules_boxes.php";
-require_once DOL_DOCUMENT_ROOT."/custom/notifications/class/produit.class.php";
-require_once DOL_DOCUMENT_ROOT."/custom/notifications/class/config.class.php";
-
+require_once DOL_DOCUMENT_ROOT."/custom/notificationsltdj/class/notifs.class.php";
+require_once DOL_DOCUMENT_ROOT."/custom/notificationsltdj/class/config.class.php";
 
 /**
  * Class to manage the box
@@ -93,7 +92,7 @@ class notificationsltdjwidget1 extends ModeleBoxes
 	 */
 	public function __construct(DoliDB $db, $param = '')
 	{
-		global $user, $conf, $langs;
+		global $langs;
 		// Translations
 		$langs->loadLangs(array("boxes", "notificationsltdj@notificationsltdj"));
 
@@ -184,14 +183,14 @@ class notificationsltdjwidget1 extends ModeleBoxes
 				// Accéder aux colonnes de chaque ligne
 				$ref_produit = $notif->ref;
 				$id_notification = $notif->id;
-				$utilisateur_modificateur = $notif->user_modif;
+				$utilisateur_modificateur = $notif->fk_user_modif;
 				$text_modification = $notif->text;
 
 				if ($notif->action === 'PRODUCT_CREATE') {
 					$notif_action = "Produit créé";
-				} else if ($notif->action === 'PRODUCT_MODIFY') {
+				} else if ($notif->type === 'PRODUCT_MODIFY') {
 					$notif_action = "Produit modifié";
-				} else if ($notif->action === 'PRODUCT_DELETE') {
+				} else if ($notif->type === 'PRODUCT_DELETE') {
 					$notif_action = "Produit supprimé";
 				}
 
