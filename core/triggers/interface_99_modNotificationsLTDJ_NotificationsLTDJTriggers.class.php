@@ -82,6 +82,23 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 		}
 	}
 
+	/**
+	 * Managing notifications for box
+	 *
+	 */
+	public function manageNotifications() {
+
+		global $db;
+		$config = new Config($db);
+		$config->fetchAll();
+
+		$affichage = new Affichage($db);
+
+		$now = dol_now();
+		$affichage->date_creation = $this->db->idate($now);
+		$affichage->tms = $now;
+
+	}
 
 	/**
 	 * Trigger name
@@ -102,16 +119,6 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 	{
 		return $this->description;
 	}
-
-	/**
-	 * Trigger manager for notifications
-	 *
-	 */
-
-	public function manageNotifications() {
-
-	}
-
 
 	/**
 	 * Function called when a Dolibarrr business event is done.

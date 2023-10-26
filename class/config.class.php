@@ -119,8 +119,8 @@ class Config extends CommonObject
 		'fk_user_creat' => array('type'=>'integer:User:user/class/user.class.php', 'label'=>'UserAuthor', 'picto'=>'user', 'enabled'=>'1', 'position'=>510, 'notnull'=>1, 'visible'=>-2, 'foreignkey'=>'user.rowid',),
 		'fk_user_modif' => array('type'=>'integer:User:user/class/user.class.php', 'label'=>'UserModif', 'picto'=>'user', 'enabled'=>'1', 'position'=>511, 'notnull'=>-1, 'visible'=>-2,),
 		'type' => array('type'=>'varchar(50)', 'label'=>'Type', 'enabled'=>'1', 'position'=>20, 'notnull'=>1, 'visible'=>1, 'noteditable'=>'1', 'comment'=>"Trigger's action"),
-		'group_id_json' => array('type'=>'text', 'label'=>'GroupIdJson', 'enabled'=>'1', 'position'=>30, 'notnull'=>1, 'visible'=>0, 'comment'=>"Goup id in JSON"),
-		'user_id_json' => array('type'=>'text', 'label'=>'UserIdJson', 'enabled'=>'1', 'position'=>40, 'notnull'=>1, 'visible'=>0, 'comment'=>"User Id in JSON"),
+		'group_id_json' => array('type'=>'text', 'label'=>'GroupIdJson', 'enabled'=>'1', 'position'=>30, 'notnull'=>0, 'visible'=>0, 'comment'=>"Goup id in JSON"),
+		'user_id_json' => array('type'=>'text', 'label'=>'UserIdJson', 'enabled'=>'1', 'position'=>40, 'notnull'=>0, 'visible'=>0, 'comment'=>"User Id in JSON"),
 		'is_important_group' => array('type'=>'boolean', 'label'=>'IsImportantGroup', 'enabled'=>'1', 'position'=>50, 'notnull'=>1, 'visible'=>1, 'default'=>'0', 'comment'=>"Notif important for Groups"),
 		'is_important_user' => array('type'=>'boolean', 'label'=>'IsImportantUser', 'enabled'=>'1', 'position'=>60, 'notnull'=>1, 'visible'=>1, 'default'=>'0', 'comment'=>"Notifs important for Users"),
 	);
