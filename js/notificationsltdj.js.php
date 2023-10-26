@@ -145,65 +145,89 @@ if (empty($dolibarr_nocache)) {
 //	});
 //});
 
+// Animation formulaire en jQuery
+$(document).ready(function() {
 
-// Animation formulaire
-document.addEventListener('DOMContentLoaded', function() {
-	let selectAction = document.getElementById('notif-action');
-	let selectNotification = document.querySelector('.div-notif-select');
-	let selectGroup = document.querySelector('.div-group-select');
-	let selectUser = document.querySelector('.div-user-select');
-	let checkboxUserGroup = document.querySelector('.div-checkbox')
+	$('.div-checkbox').hide();
+	$('.div-group-select').hide();
+	$('.div-switch').hide();
+	$('.div-group-select2').hide();
 
-	// Choisir toutes les options notifications du <select>
-	let allOptions = selectNotification.querySelectorAll('option');
+	let button = $('.button-form');
 
-	selectNotification.style.display = 'none';
-	selectGroup.style.display = 'none';
-	selectUser.style.display = 'none';
-	checkboxUserGroup.style.display ="none"
+	// Désactive le bouton
+	button.prop('disabled', true);
 
-	// Masque toutes les options de notification au chargement de la page
-	allOptions.forEach(function(option) {
-		option.style.display = 'none';
-	});
+	$('.div-notif-action select').on('change', function() {
+		let selectedValue = $(this).val();
 
-	// Écouteur d'événement pour la case à cocher "Envoyer la notification à un groupe ?"
-	document.getElementById('group-checkbox').addEventListener('change', function() {
-		if (this.checked) {
-			selectGroup.style.display = 'block';
+		if (selectedValue !== '--- Nom de l\'action ---') {
+
+			$('.div-checkbox').slideDown(900);
+			$('.div-group-select').slideDown(900);
+			$('.div-switch').slideDown(900);
+			$('.div-group-select2').slideDown(900);
+
+			// Activation du bouton
+			button.prop('disabled', false);
 		} else {
-			selectGroup.style.display = 'none';
-		}
-	});
+			$('.div-checkbox').slideUp(900);
+			$('.div-group-select').slideUp(900);
+			$('.div-switch').slideUp(900);
+			$('.div-group-select2').slideUp(900);
 
-	// Écouteur d'événement pour la case à cocher "Envoyer la notification à un collègue ?"
-	document.getElementById('user-checkbox').addEventListener('change', function() {
-		if (this.checked) {
-			selectUser.style.display = 'block';
-		} else {
-			selectUser.style.display = 'none';
-		}
-	});
-
-	selectAction.addEventListener('change', function() {
-		let selectedValue = selectAction.value;
-		let matchingOptions = Array.from(selectNotification.querySelectorAll('option[data-action="' + selectedValue + '"]'));
-
-		matchingOptions.forEach(function(option) {
-			option.style.display = 'block';
-		});
-
-		allOptions.forEach(function(option) {
-			if (!matchingOptions.includes(option)) {
-				option.style.display = 'none';
-			}
-		});
-
-		if (selectedValue !== '') {
-			selectNotification.style.display = 'block';
-			checkboxUserGroup.style.display = "block";
+			// Désactive le bouton lorsque rien n'est sélectionné
+			button.prop('disabled', true);
 		}
 	});
 });
 
+
+// Récupération des Ids collègues pour les convertir en JSON
+$(document).ready(function() {
+	$("#formulaireNotification").submit(function(event) {
+		event.preventDefault(); // Empêche le formulaire de se soumettre normalement
+
+		let colleguesSelectionnes = [];
+		let groupesSelectionnes = [];
+
+		// Parcoure toutes les checkbox
+		$("input[type=checkbox][name=collegue]:checked").each(function() {
+			colleguesSelectionnes.push($(this).val());
+		});
+
+		$("input[type=checkbox][name=group]:checked").each(function() {
+			groupesSelectionnes.push($(this).val());
+		});
+
+		// Convertir le tableau en JSON
+		let colleguesJSON = JSON.stringify(colleguesSelectionnes);
+		let groupesJSON = JSON.stringify(groupesSelectionnes);
+
+		// Affecte les valeurs aux champs cachés HTML
+		$("input[type='hidden'][name='id_user_json']").val(colleguesJSON);
+		$("input[type='hidden'][name='id_group_json']").val(groupesJSON);
+
+		// Soumission du formulaire
+		this.submit();
+	});
+});
+
+// Changement de valeur pour les checkbox de notification importantes ou non
+//$(document).ready(function() {
+//
+//	let checkbox = $("#is-important-group");
+//	let checkbox = $("#is-important-checkbox");
+//
+//	// Écoutez les changements d'état de la checkbox
+//	checkbox.change(function() {
+//		if (this.checked) {
+//			// Si la checkbox est cochée, changez la valeur à 1
+//			checkbox.val(1);
+//		} else {
+//			// Si la checkbox n'est pas cochée, laissez la valeur à 0
+//			checkbox.val(0);
+//		}
+//	});
+//});
 

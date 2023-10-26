@@ -23,8 +23,8 @@ CREATE TABLE llx_notificationsltdj_config(
 	fk_user_creat integer NOT NULL, 
 	fk_user_modif integer, 
 	type varchar(50) NOT NULL, 
-	group_id_json varchar(255) NOT NULL, 
-	user_id_json varchar(255) NOT NULL, 
+	group_id_json text, 
+	user_id_json text, 
 	is_important_group boolean NOT NULL, 
 	is_important_user boolean NOT NULL
 	-- END MODULEBUILDER FIELDS

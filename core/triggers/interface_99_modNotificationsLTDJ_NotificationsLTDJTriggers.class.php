@@ -31,12 +31,12 @@
  */
 
 require_once DOL_DOCUMENT_ROOT.'/core/triggers/dolibarrtriggers.class.php';
-require_once DOL_DOCUMENT_ROOT.'/custom/notificationsltdj/core/boxes/notificationsltdjwidget1.php';
-
+require_once DOL_DOCUMENT_ROOT .'/custom/notificationsltdj/core/boxes/notificationsltdjwidget1.php';
 
 /**
  *  Class of triggers for NotificationsLTDJ module
  */
+
 class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 {
 	/**
@@ -54,6 +54,50 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 		// 'development', 'experimental', 'dolibarr' or version
 		$this->version = 'development';
 		$this->picto = 'notificationsltdj@notificationsltdj';
+	}
+
+	/**
+	 * Factory method for Notifs
+	 *
+	 **/
+	private function createNotifs(User $user, $object, $type, $text = ''): Notifs
+	{
+		global $db;
+		$now = dol_now();
+		$notif = new Notifs($db);
+
+		if ($notif) {
+			$notif->entity = $user->entity;
+			$notif->ref = $object->ref;
+			$notif->type = $type;
+			$notif->label = addslashes($object->label);
+			$notif->date_creation = $this->db->idate($now);
+			$notif->tms = $now;
+			$notif->fk_user_modif = $user->id;
+			$notif->text = $text;
+
+			return $notif;
+		} else {
+			throw new \Exception('Erreur lors de la création de la notification');
+		}
+	}
+
+	/**
+	 * Managing notifications for box
+	 *
+	 */
+	public function manageNotifications() {
+
+		global $db;
+		$config = new Config($db);
+		$config->fetchAll();
+
+		$affichage = new Affichage($db);
+
+		$now = dol_now();
+		$affichage->date_creation = $this->db->idate($now);
+		$affichage->tms = $now;
+
 	}
 
 	/**
@@ -75,7 +119,6 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 	{
 		return $this->description;
 	}
-
 
 	/**
 	 * Function called when a Dolibarrr business event is done.
@@ -318,100 +361,47 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 			//case 'SHIPPING_REOPEN':
 			//case 'SHIPPING_DELETE':
 
-			// and more...
-
 			default:
 				dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
 				break;
 		}
-
 		return 0;
 	}
 
-	/**
-	 * Handle product modification event
-	 *
-	 * @param string $action Event action code
-	 * @param Product $object Modified product object
-	 * @param User $user Object user
-	 * @param Translate $langs Object langs
-	 * @param Conf $conf Object conf
-	 * @return int 0 if no action taken, >0 if OK
-	 */
-	function produitCree($action, Product $object, User $user, Translate $langs, Conf $conf): int
+	private function produitCree(string $action, Product $object, User $user, Translate $langs, Conf $conf): void
 	{
-		global $db;
-
-		// Requête SQL d'insertion des notifications
-		$notif = new Produit($db);
-
+		$notif = $this->createNotifs($user, $object, "PRODUCT_CREATE", $user->login . " a créé un produit");
 		if ($notif) {
-			$notif->ref = $object->ref;
-			$notif->label = addslashes($object->label);
-			$notif->text = "";
-			$notif->action = "PRODUCT_CREATE";
-			$notif->user_modif = $user->login;
-			$notif->text = $notif->text."Crée par ".$user->login;
-
 			$notif->create($user);
-		} else {
-			echo '<p>Requête SQL d\'insertion de notification erronée</p>';
 		}
-		return 0;
 	}
 
-	function produitModifie($action, Product $object, User $user, Translate $langs, Conf $conf): int
+	private function produitModifie(string $action, Product $object, User $user, Translate $langs, Conf $conf): void
 	{
-		global $db;
+		$text = '';
 
-		// Requête SQL d'insertion des notifications
-		$notif = new Produit($db);
-
-		if ($notif) {
-
-			$notif->ref = $object->ref;
-			$notif->label = addslashes($object->label);
-			$notif->text = "";
-			$notif->action = "PRODUCT_MODIFY";
-			$notif_utilisateur = $notif->user_modif = $user->login;
-
-			if ($notif->ref != $object->oldcopy->ref) {
-				$notif->text = $notif->text."Ancienne réf : ".$object->oldcopy->ref.". ";
-			}
-			if ($notif->label != $object->oldcopy->label) {
-				$notif->text = $notif->text."Ancien label : ".$object->oldcopy->label.". ";
-			}
-			if ($notif-> label == $object->oldcopy->label || $notif->ref == $object->oldcopy->ref) {
-				$notif->text = $notif->text."Modification d'un prix";
-			}
-			$notif->create($user);
-
-		} else {
-			echo '<p>Requête SQL d\'insertion de notification erronée</p>';
+		// Vérification des anciennes ref et label
+		if ($object->ref != $object->oldcopy->ref) {
+			$text .= "Ancienne réf : " . $object->oldcopy->ref . ". ";
 		}
-		return 0;
+		if ($object->label != $object->oldcopy->label) {
+			$text .= "Ancien label : " . $object->oldcopy->label . ". ";
+		}
+		if ($object->label == $object->oldcopy->label || $object->ref == $object->oldcopy->ref) {
+			$text .= "Modification d'un prix";
+		}
+
+		$notif = $this->createNotifs($user, $object, "PRODUCT_MODIFY", $text);
+		if ($notif) {
+			$notif->create($user);
+		}
 	}
 
-	private function produitSupprime(string $action, CommonObject $object, User $user, Translate $langs, Conf $conf): int
+	private function produitSupprime(string $action, Product $object, User $user, Translate $langs, Conf $conf): void
 	{
-		global $db;
-
-		// Requête SQL d'insertion des notifications
-		$notif = new Produit($db);
-
+		$notif = $this->createNotifs($user, $object, "PRODUCT_DELETE", $user->login . " a supprimé un produit");
 		if ($notif) {
-			$notif->ref = $object->ref;
-			$notif->label = addslashes($object->label);
-			$notif->text = "";
-			$notif->action = "PRODUCT_DELETE";
-			$notif_utilisateur = $notif->user_modif = $user->login;
-			$notif->text = $notif->text."Supprimé par ".$user->login;
-
 			$notif->create($user);
-
-		} else {
-			echo '<p>Requête SQL d\'insertion de notification erronée</p>';
 		}
-		return 0;
 	}
 }

@@ -114,9 +114,9 @@ llxHeader("", $langs->trans("NotificationsLTDJArea"));
 print load_fiche_titre($langs->trans("NotificationsLTDJArea"), '', 'notificationsltdj.png@notificationsltdj');
 
 echo '<div class="divForm">
-		<h2 class="titreForm">Envoyez la notification importante a un groupe et/ou à votre collègue</h2>
+<h2 class="titreForm">Envoyez la notification importante a un groupe et/ou à votre collègue</h2>
 
-<form method="POST" action="#">
+<form id="formulaireNotification" method="POST">
 	<fieldset>
 		<legend>Formulaire de notification(s)</legend> <br>
 		<div class="label&select">
@@ -127,82 +127,91 @@ echo '<div class="divForm">
 					<option value="PRODUCT_CREATE">Produit créé</option>
 					<option value="PRODUCT_MODIFY">Produit modifié</option>
 					<option value="PRODUCT_DELETE">Produit supprimé</option>
-				</select> <br> <br>
+				</select>
 			</div>
 
-			<div class="div-notif-select">
-				<label class="label" for="notif-select">Selectionnez une notification</label>
-				<select class="select" name="notif-select" id="notif-select" required>
-				<option>--- Nom de la notification ---</option>';
-				foreach($notifs as $notif){
-					$id = $notif->id;
-					$titre = $notif->label;
-					$action = $notif->action;
-					echo '<option value="' . $id . '" data-action="' . $action . '">' . $titre . '</option>';
-				}
-				echo '</select> <br> <br>
-			</div>
-			<div class="div-checkbox">
-				<div class="checkbox-1">
-					<label for="group-checkbox">Envoyer la notification à un groupe ?</label>
-					<input type="checkbox" id="group-checkbox" name="group-checkbox"/>
+			<div class="switch-group">
+				<div class="div-group-select">
+					<p class="label-group">Sélectionnez le nom d\'un groupe</p>
+					<div class="list-group">';
+						while ($row = $db->fetch_object($result)) {
+							$idGroup = $row->rowid;
+							$groupName = $row->nom;
+							echo '<label for="group' . $idGroup . '">';
+							echo '<input type="checkbox" name="group" id="group' . $idGroup . '" value="' . $idGroup . '"> ' . $groupName;
+							echo '<input type="hidden" name="id_group_json" value="">';
+							echo '</label><br>';
+						}
+						echo '</select> <br> <br>
+					</div>
 				</div>
-				<br>
-				<div class="checkbox-2">
-					<label for="user-checkbox">Envoyer la notification à un collègue ?</label>
-					<input type="checkbox" id="user-checkbox" name="user-checkbox" />
+				<div class="div-switch">
+					<p>Est ce une notification importante ?</p>
+					<span style="color:#cccccc;">Pas important <i class="fas fa-arrow-right"></i> </span>
+					<label class="switch">
+					  	<input type="checkbox" name="is-important-group" value="1" checked>
+					  	<span class="slider round"></span>
+					</label>
+					<span style="color:#568fff;"> <i class="fas fa-arrow-left"></i> Important</span> <br>
 				</div>
 			</div>
-			<div class="div-group-select">
-				<label class="label" for="group-select">Selectionnez le nom d\'un groupe</label>
-				<select class="select" name="group-select" id="group-select" required>
-				<option>--- Nom du groupe ---</option>';
-				while ($row = $db->fetch_object($result)) {
-					$idGroup = $row->rowid;
-					$groupName = $row->nom;
-					echo '<option value="' . $idGroup . '">' . $groupName . '</option>';
-				}
-				echo '</select> <br> <br>
-			</div>
 
-			<div class="div-user-select">
-				<label class="label" for="user-select">Selectionnez le nom de votre collègue</label>
-				<select class="select" name="user-select" id="user-select">
-				<option>--- Nom de votre collègue ---</option>';
-				while ($row = $db->fetch_object($result2)) {
-					$idGroup = $row->rowid;
-					$userLastName = $row->lastname;
-					$userFirstName = $row->firstname;
-					echo '<option value="' . $idGroup . '">' . $userLastName . ' ' . $userFirstName . '</option>';
-				}
-				echo '</select><br>
-			</div>
+			<div class="switch-user">
+			<hr>
+				<div class="div-group-select2">
+					<p class="label">Envoyez la notification à un ou plusieurs collègues :</p> <br> <br>
+					<div class="liste-collegue">';
+						while ($row2 = $db->fetch_object($result2)) {
+							$idCollegue = $row2->rowid;
+							$collegueLastName = $row2->lastname;
+							$collegueFirstName = $row2->firstname;
+							echo '<label for="collegue' . $idCollegue . '">';
+							echo '<input type="checkbox" name="collegue" id="collegue' . $idCollegue . '" value="' . $idCollegue . '"> ' . $collegueLastName . ' ' . $collegueFirstName;
+							echo '<input type="hidden" name="id_user_json" value="">';
+							echo '</label><br>';
+						}
+					echo '</div>
+				</div>
 
-			<div class="divswitch">
-				<span style="color:#cccccc;">Pas important <i class="fas fa-arrow-right"></i> </span>
-				<label class="switch">
-				  <input type="checkbox" name="is-important" value="1">
-				  <span class="slider round"></span>
-				</label>
-				<span style="color:#568fff;"> <i class="fas fa-arrow-left"></i> Important</span> <br>
+				<div class="div-switch">
+					<p>Est-ce une notification importante ?</p>
+					<span style="color:#cccccc;">Pas important <i class="fas fa-arrow-right"></i> </span>
+					<label class="switch">
+					  	<input type="checkbox" name="is-important-user" value="1" checked>
+					  	<span class="slider round"></span>
+					</label>
+					<span style="color:#568fff;"> <i class="fas fa-arrow-left"></i> Important</span> <br>
+				</div>
 			</div>
 
 			<div class="divbutton">
-				<button class="button-form" role="button">Envoyez !</button>
+				<button type="submit" id="boutonSoumettre" class="button-form" role="button">Envoyez !</button>
 			</div>
 		</div>
 </form>';
 
-
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
+	//Récupération en format JSON des id_group
+	$colleguesSelectionnes = $_POST['id_user_json'];
+	$groupesSelectionnes = $_POST['id_group_json'];
+
+	$actionSelectionnee = $_POST['notif-action'];
+
+	//Date du jour
+	$now = dol_now();
 	// Récupere les données du formulaire
 	$config = new Config($db);
 
-	$config->fk_id_notif = $_POST["notif-select"];
-	$config->fk_id_group = $_POST["group-select"];
-	$config->fk_user_form = $_POST["user-select"];
-	$config->fk_user_connected = $user->id;
-	$config->notif_important = isset($_POST["is-important"]) ? 1 : 0;
+	$config->entity = $user->entity;
+	$config->date_creation = $now;
+	$config->tms = $now;
+	$config->fk_user_modif = $user->id;
+	$config->type = $actionSelectionnee;
+	$config->user_id_json = $colleguesSelectionnes;
+	$config->group_id_json = $groupesSelectionnes;
+	$config->is_important_group = $_POST["is-important-group"] ? 1 : 0;
+	$config->is_important_user = $_POST["is-important-user"] ? 1 : 0;
 
 	$config->create($user);
 

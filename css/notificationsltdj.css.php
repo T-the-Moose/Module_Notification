@@ -141,16 +141,49 @@ div.mainmenu.notificationsltdj {
 	background: inherit;
 }
 
+.div-notif-action {
+	margin-bottom: 1em;
+}
 
-/***************** Box autour du slider *******************/
-.divswitch {
+/***************** Divs des Select + switch group et user ***************************/
+
+.div-switch {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	justify-content: center;
+	margin-right: ;
 }
 
-/***************** icone de flèche sur toggle notificationsproduit.index.php *******************/
+.div-switch p {
+	margin-right: 2em;
+}
+
+.switch-user {
+	margin-bottom: 2em;
+}
+
+.div-group-select2 {
+	margin-top: 2em;
+}
+
+.liste-collegue {
+	column-count: 4;
+}
+
+/* Style optionnel pour les éléments de la liste (étirez-les pour remplir les colonnes) */
+.liste-collegue label {
+	display: block;
+}
+
+.list-group {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-around;
+	margin-top: 2em;
+}
+
+
+/***************** Icone de flèche sur toggle notificationsproduit.index.php *******************/
 .fa-arrow-right {
 	font-size: 20px;
 	color: #cccccc;
@@ -187,7 +220,8 @@ div.mainmenu.notificationsltdj {
 	height: 0;
 }
 
-/***************** The slider *******************/
+
+/***************** Sliders *******************/
 .slider {
 	position: absolute;
 	cursor: pointer;
@@ -226,7 +260,7 @@ input:checked + .slider:before {
 	transform: translateX(26px);
 }
 
-/***************** Cercle du slider *******************/
+/***************** Cercle des sliders *******************/
 .slider.round {
 	border-radius: 34px;
 }
@@ -240,6 +274,10 @@ input:checked + .slider:before {
 	text-align: center;
 	flex-direction: column;
 	justify-content: center;
+}
+
+.button-form[disabled] {
+	cursor: not-allowed;
 }
 
 .button-form {
@@ -268,10 +306,6 @@ input:checked + .slider:before {
 .button-form:active {
 	box-shadow: #3c4fe0 0 3px 7px inset;
 	transform: translateY(2px);
-}
-
-.div-checkbox {
-	margin: 1em 0 2em 0;
 }
 
 /***************** Tableau de la liste des notifications *******************/
