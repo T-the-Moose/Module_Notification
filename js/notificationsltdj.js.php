@@ -183,51 +183,45 @@ $(document).ready(function() {
 });
 
 
-// Récupération des Ids collègues pour les convertir en JSON
-$(document).ready(function() {
-	$("#formulaireNotification").submit(function(event) {
-		event.preventDefault(); // Empêche le formulaire de se soumettre normalement
-
-		let colleguesSelectionnes = [];
-		let groupesSelectionnes = [];
-
-		// Parcoure toutes les checkbox
-		$("input[type=checkbox][name=collegue]:checked").each(function() {
-			colleguesSelectionnes.push($(this).val());
-		});
-
-		$("input[type=checkbox][name=group]:checked").each(function() {
-			groupesSelectionnes.push($(this).val());
-		});
-
-		// Convertir le tableau en JSON
-		let colleguesJSON = JSON.stringify(colleguesSelectionnes);
-		let groupesJSON = JSON.stringify(groupesSelectionnes);
-
-		// Affecte les valeurs aux champs cachés HTML
-		$("input[type='hidden'][name='id_user_json']").val(colleguesJSON);
-		$("input[type='hidden'][name='id_group_json']").val(groupesJSON);
-
-		// Soumission du formulaire
-		this.submit();
-	});
-});
-
-// Changement de valeur pour les checkbox de notification importantes ou non
-//$(document).ready(function() {
+//// API Intersection Observer pour date d'affichage
+//let elementsToObserve = document.querySelectorAll('.oddeven');
 //
-//	let checkbox = $("#is-important-group");
-//	let checkbox = $("#is-important-checkbox");
+//// Options de l'observateur d'intersection
+//let options = {
+//	root: elementsToObserve, // Les éléments obsérvés
+//	rootMargin: '0px', // Marge autour de la fenêtre de visualisation
+//	threshold: 1 // Les notifications sont considérées comme visible si 100 % ou plus est visible
+//};
 //
-//	// Écoutez les changements d'état de la checkbox
-//	checkbox.change(function() {
-//		if (this.checked) {
-//			// Si la checkbox est cochée, changez la valeur à 1
-//			checkbox.val(1);
-//		} else {
-//			// Si la checkbox n'est pas cochée, laissez la valeur à 0
-//			checkbox.val(0);
+//// Fonction appelée lorsque l'élément devient visible
+//let handleIntersection = (notifications, observer) => {
+//	notifications.forEach(notification => {
+//		if (notification.isIntersecting) {
+//
+//			// L'élément est maintenant visible
+//			let dateActuelle = new Date();
+//			let dateISO = dateActuelle.toISOString();
+//
+//			// Envoyer la date au serveur en utilisant une requête AJAX
+//			let xhr = new XMLHttpRequest();
+//			xhr.open('POST', 'interface_99_modNotificationsLTDJ_NotificationsLTDJTriggers.class.php', true);
+//			xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+//			xhr.send('date=' + dateISO);
+//
+//			// Arrêtez d'observer cet élément après enregistrement
+//			observer.unobserve(notification.target);
 //		}
 //	});
+//};
+//
+//// Observateur d'intersection
+//let observer = new IntersectionObserver(handleIntersection, options);
+//
+//// Ajoute chaque élément à observer
+//elementsToObserve.forEach(element => {
+//	observer.observe(element);
 //});
+
+
+
 
