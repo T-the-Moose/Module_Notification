@@ -120,6 +120,7 @@ class Affichage extends CommonObject
 		'first_display' => array('type'=>'datetime', 'label'=>'FirstDisplay', 'enabled'=>'1', 'position'=>30, 'notnull'=>0, 'visible'=>1, 'comment'=>"First Display of notif"),
 		'is_important' => array('type'=>'boolean', 'label'=>'IsImportant', 'enabled'=>'1', 'position'=>20, 'notnull'=>1, 'visible'=>1, 'default'=>'0', 'comment'=>"Notifs important for Users or Groups"),
 		'id_user' => array('type'=>'integer', 'label'=>'IdUser', 'enabled'=>'1', 'position'=>10, 'notnull'=>1, 'visible'=>1, 'index'=>1, 'comment'=>"User's id"),
+		'id_notif' => array('type'=>'integer', 'label'=>'IdNotif', 'enabled'=>'1', 'position'=>40, 'notnull'=>1, 'visible'=>0, 'index'=>1, 'comment'=>"Notification's id"),
 	);
 	public $rowid;
 	public $date_creation;
@@ -129,6 +130,7 @@ class Affichage extends CommonObject
 	public $first_display;
 	public $is_important;
 	public $id_user;
+	public $id_notif;
 	// END MODULEBUILDER PROPERTIES
 
 

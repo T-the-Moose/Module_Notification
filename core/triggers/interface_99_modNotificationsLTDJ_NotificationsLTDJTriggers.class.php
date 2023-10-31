@@ -88,7 +88,7 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 	 */
 	public function manageNotifications() {
 
-		global $db;
+		global $db, $user;
 		$config = new Config($db);
 		$config->fetchAll();
 
@@ -97,6 +97,9 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 		$now = dol_now();
 		$affichage->date_creation = $this->db->idate($now);
 		$affichage->tms = $now;
+		$affichage->fk_user_modif = $user->id;
+
+
 
 	}
 

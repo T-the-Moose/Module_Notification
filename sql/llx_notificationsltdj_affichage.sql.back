@@ -22,6 +22,7 @@ CREATE TABLE llx_notificationsltdj_affichage(
 	fk_user_creat integer NOT NULL, 
 	fk_user_modif integer, 
 	first_display datetime, 
-	is_important boolean NOT NULL
+	is_important boolean NOT NULL, 
+	id_user integer NOT NULL
 	-- END MODULEBUILDER FIELDS
 ) ENGINE=innodb;

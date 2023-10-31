@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
-global $langs, $db, $conf, $user;
+global $langs, $db, $conf, $user, $object;
 
 /**
  *	\file       notificationsltdj/notificationsltdjindex.php
@@ -59,7 +59,11 @@ if (!$res) {
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
 require_once DOL_DOCUMENT_ROOT.'/custom/notificationsltdj/class/notifs.class.php';
 require_once DOL_DOCUMENT_ROOT.'/custom/notificationsltdj/class/config.class.php';
+require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
+require_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
 
+
+require_once DOL_DOCUMENT_ROOT.'/categories/class/categorie.class.php';
 
 
 // Load translation files required by the page
@@ -86,21 +90,10 @@ $now = dol_now();
  * Actions
  */
 
-$notificationProduit = new Notifs($db);
-$notifs = $notificationProduit->fetchAll();
-
 // UserGroup
 $sql = 'SELECT rowid, nom FROM '.MAIN_DB_PREFIX.'usergroup';
 $sql .= ' ORDER by rowid';
 $result = $db->query($sql);
-
-// User
-$sql2 = 'SELECT rowid, lastname, firstname FROM '.MAIN_DB_PREFIX.'user';
-$sql2 .= ' WHERE lastname NOT LIKE "[MAIL]%"
-			AND lastname NOT LIKE "Sup%"
-			AND lastname NOT LIKE "ltdj%"';
-$sql2 .= ' ORDER by lastname';
-$result2 = $db->query($sql2);
 
 /*
  * View
@@ -134,16 +127,16 @@ echo '<div class="divForm">
 				<div class="div-group-select">
 					<p class="label-group">Sélectionnez le nom d\'un groupe</p>
 					<div class="list-group">';
+						echo '<td class="tdoverflowmax200">';
+						$groupList = array();
 						while ($row = $db->fetch_object($result)) {
-							$idGroup = $row->rowid;
-							$groupName = $row->nom;
-							echo '<label for="group' . $idGroup . '">';
-							echo '<input type="checkbox" name="group" id="group' . $idGroup . '" value="' . $idGroup . '"> ' . $groupName;
-							echo '<input type="hidden" name="id_group_json" value="">';
-							echo '</label><br>';
+							$groupList[$row->rowid] = $row->nom;
 						}
-						echo '</select> <br> <br>
-					</div>
+
+						$selected = array();
+						echo $form->multiselectarray('Groupe', $groupList, $selected, 0, null, null, null, "300%");
+						echo '</td>';
+					echo '</div>
 				</div>
 				<div class="div-switch">
 					<p>Est ce une notification importante ?</p>
@@ -157,19 +150,14 @@ echo '<div class="divForm">
 			</div>
 
 			<div class="switch-user">
-			<hr>
 				<div class="div-group-select2">
-					<p class="label">Envoyez la notification à un ou plusieurs collègues :</p> <br> <br>
+					<p class="label">Envoyez la notification à un ou plusieurs collègues :</p>
 					<div class="liste-collegue">';
-						while ($row2 = $db->fetch_object($result2)) {
-							$idCollegue = $row2->rowid;
-							$collegueLastName = $row2->lastname;
-							$collegueFirstName = $row2->firstname;
-							echo '<label for="collegue' . $idCollegue . '">';
-							echo '<input type="checkbox" name="collegue" id="collegue' . $idCollegue . '" value="' . $idCollegue . '"> ' . $collegueLastName . ' ' . $collegueFirstName;
-							echo '<input type="hidden" name="id_user_json" value="">';
-							echo '</label><br>';
-						}
+						echo '<td class="tdoverflowmax200">';
+						$userList = $form->select_dolusers('', 'userList', 0, null, 0, '', '', 0, 0, 0, '', 0, '', '', 0, 1);
+						$selected = array();
+						echo $form->multiselectarray('Utilisateur', $userList, $selected, 0, null, null, null, "300%");
+						echo '</td>';
 					echo '</div>
 				</div>
 
@@ -190,11 +178,16 @@ echo '<div class="divForm">
 		</div>
 </form>';
 
+
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-	//Récupération en format JSON des id_group
-	$colleguesSelectionnes = $_POST['id_user_json'];
-	$groupesSelectionnes = $_POST['id_group_json'];
+	//Récupération et encode au format JSON des ids group et user
+	$arrayUsers = GETPOST('Utilisateur', 'array:restricthtml');
+	$colleguesSelectionnes = json_encode($arrayUsers);
+
+	$arrayGroups= GETPOST('Groupe', 'array:restricthtml');
+	$groupesSelectionnes = json_encode($arrayGroups);
 
 	$actionSelectionnee = $_POST['notif-action'];
 
@@ -218,6 +211,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 	if (!$result) {
 		echo "Erreur SQL : " . $db->lasterror();
 	}
+
 }
 
 $NBMAX = $conf->global->MAIN_SIZE_SHORTLIST_LIMIT;
@@ -226,3 +220,4 @@ $max = $conf->global->MAIN_SIZE_SHORTLIST_LIMIT;
 // End of page
 llxFooter();
 $db->close();
+
