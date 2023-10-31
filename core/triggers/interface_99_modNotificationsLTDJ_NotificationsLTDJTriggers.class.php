@@ -100,7 +100,6 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 		$affichage->fk_user_modif = $user->id;
 
 
-
 	}
 
 	/**
