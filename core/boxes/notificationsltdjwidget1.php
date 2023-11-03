@@ -107,6 +107,22 @@ class notificationsltdjwidget1 extends ModeleBoxes
 	}
 
 	/**
+	 * Managing notifications for box
+	 *
+	 */
+	public function manageNotifications() {
+
+		global $db;
+
+		$datePremierAffichage = $_POST['date'];
+
+		// Préparez la requête SQL pour insérer la date dans la base de données
+		$sql = "INSERT INTO llx_notificationsltdj_affichage (first_display) VALUES ('$datePremierAffichage')";
+		$result = $db->query($sql);
+
+	}
+
+	/**
 	 * Load data into info_box_contents array to show array later. Called by Dolibarr before displaying the box.
 	 *
 	 * @param int $max Maximum number of records to load
@@ -205,7 +221,7 @@ class notificationsltdjwidget1 extends ModeleBoxes
 						'text' => $notif_action,
 					),
 					1 => array(
-						'td' => 'class="center"',
+						'td' => 'class="center"' . "data-notification-id=" . $id_notification . " data-iso-date=" . date('c'),
 						'text' => $ref_produit,
 						'asis' => 1,
 					),
@@ -222,7 +238,7 @@ class notificationsltdjwidget1 extends ModeleBoxes
 						'text' => '<span><i class="fa fa-check"></i></span>',
 					),
 				);
-				// Ajoute les informations du produit au tableau de la boxe
+				// Ajout des informations du produit au tableau de la boxe
 				$info_box_contents[] = $product_info;
 
 			}

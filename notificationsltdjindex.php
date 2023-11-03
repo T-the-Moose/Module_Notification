@@ -102,12 +102,12 @@ $result = $db->query($sql);
 $form = new Form($db);
 $formfile = new FormFile($db);
 
-llxHeader("", $langs->trans("NotificationsLTDJArea"));
+llxHeader("", $langs->trans("Notifications LTDJArea"));
 
-print load_fiche_titre($langs->trans("NotificationsLTDJArea"), '', 'notificationsltdj.png@notificationsltdj');
+//print load_fiche_titre($langs->trans("NotificationsLTDJArea"), '', 'notificationsltdj.png@notificationsltdj');
 
 echo '<div class="divForm">
-<h2 class="titreForm">Envoyez la notification importante a un groupe et/ou à votre collègue</h2>
+<h2 class="titreForm">Envoyez la notification importante à un groupe et/ou à des collègues</h2>
 
 <form id="formulaireNotification" method="POST">
 	<fieldset>
@@ -128,14 +128,29 @@ echo '<div class="divForm">
 					<p class="label-group">Sélectionnez le nom d\'un groupe</p>
 					<div class="list-group">';
 						echo '<td class="tdoverflowmax200">';
-						$groupList = array();
-						while ($row = $db->fetch_object($result)) {
-							$groupList[$row->rowid] = $row->nom;
-						}
 
-						$selected = array();
-						echo $form->multiselectarray('Groupe', $groupList, $selected, 0, null, null, null, "300%");
+						$groupList = array();
+						$preSelected = array();
+
+						if($conf->multicompany->enabled){
+							include_once (DOL_DOCUMENT_ROOT.'/custom/multicompany/class/dao_multicompany.class.php');
+							$mc = new DaoMulticompany($db);
+							$groupList = $mc->getListOfGroups();
+							if ($groupList) {
+								$groupList[0] = 'Direction';
+								$groupList[1] = 'Responsables';
+								$groupList[2] = 'Vendeurs/Caissiers';
+								$groupList[3] = 'Vendeurs Permanents';
+								$groupList[4] = 'Technique';
+							}
+						} else {
+							while ($row = $db->fetch_object($result)) {
+								$groupList[$row->rowid] = $row->nom;
+							}
+						}
+						echo $form->multiselectarray('Groupe', $groupList, $preSelected, 0, null, null, null, "300%");
 						echo '</td>';
+
 					echo '</div>
 				</div>
 				<div class="div-switch">
@@ -155,8 +170,8 @@ echo '<div class="divForm">
 					<div class="liste-collegue">';
 						echo '<td class="tdoverflowmax200">';
 						$userList = $form->select_dolusers('', 'userList', 0, null, 0, '', '', 0, 0, 0, '', 0, '', '', 0, 1);
-						$selected = array();
-						echo $form->multiselectarray('Utilisateur', $userList, $selected, 0, null, null, null, "300%");
+						$preSelected = array();
+						echo $form->multiselectarray('Utilisateur', $userList, $preSelected, 0, null, null, null, "300%");
 						echo '</td>';
 					echo '</div>
 				</div>
@@ -191,9 +206,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 	$actionSelectionnee = $_POST['notif-action'];
 
-	//Date du jour
 	$now = dol_now();
-	// Récupere les données du formulaire
 	$config = new Config($db);
 
 	$config->entity = $user->entity;
@@ -207,11 +220,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 	$config->is_important_user = $_POST["is-important-user"] ? 1 : 0;
 
 	$config->create($user);
-
-	if (!$result) {
-		echo "Erreur SQL : " . $db->lasterror();
-	}
-
 }
 
 $NBMAX = $conf->global->MAIN_SIZE_SHORTLIST_LIMIT;

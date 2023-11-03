@@ -119,15 +119,13 @@ div.mainmenu.notificationsltdj {
 }
 
 .titreForm {
-	margin: 2em;
 	position: relative;
 	display: inline-block;
-	font-size: 24px; /* Ajustez la taille de la police à votre convenance */
+	font-size: 24px;
 	background: linear-gradient(to bottom, #d4dc3f, #6592be, #ffffff);
 	background-clip: text;
-	-webkit-background-clip: text; /* Pour la compatibilité avec les anciens navigateurs WebKit */
+	-webkit-background-clip: text; /* Compatibilité avec les anciens navigateurs */
 	color: transparent;
-	padding: 5px; /* Espacement pour rendre le dégradé plus visible */
 }
 
 /***************** Ajoute du contenu après le texte du Formulaire (pseudo-élément) *******************/

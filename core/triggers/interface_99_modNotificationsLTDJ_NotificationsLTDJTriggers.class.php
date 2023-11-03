@@ -60,10 +60,10 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 	 * Factory method for Notifs
 	 *
 	 **/
-	private function createNotifs(User $user, $object, $type, $text = ''): Notifs
+	private function creationNotification(User $user, $object, $type, $text = ''): Notifs
 	{
 		global $db;
-		$now = dol_now();
+		$now = dol_now('tzuser');
 		$notif = new Notifs($db);
 
 		if ($notif) {
@@ -71,10 +71,12 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 			$notif->ref = $object->ref;
 			$notif->type = $type;
 			$notif->label = addslashes($object->label);
-			$notif->date_creation = $this->db->idate($now);
+			$notif->date_creation = $now;
 			$notif->tms = $now;
 			$notif->fk_user_modif = $user->id;
 			$notif->text = $text;
+
+			$notif->create($user);
 
 			return $notif;
 		} else {
@@ -83,24 +85,47 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 	}
 
 	/**
-	 * Managing notifications for box
-	 *
+	 * Creation of the initial configuration
+	 * Factory method for config
 	 */
-	public function manageNotifications() {
+	private function creationConfiguration(User $user, string $type): void
+	{
+		$sql = "SELECT rowid FROM " . MAIN_DB_PREFIX . "notificationsltdj_config WHERE type = '" . $this->db->escape($type) . "'";
+		$result = $this->db->query($sql);
 
-		global $db, $user;
-		$config = new Config($db);
-		$config->fetchAll();
+		$config = new Config($this->db);
+		$now = dol_now('tzuser');
 
-		$affichage = new Affichage($db);
+		if ($result) {
+			$num = $this->db->num_rows($result);
 
-		$now = dol_now();
-		$affichage->date_creation = $this->db->idate($now);
-		$affichage->tms = $now;
-		$affichage->fk_user_modif = $user->id;
+			if ($num === 0) {
+				// Create config if dosen't exist
+				$config->entity = $user->entity;
+				$config->date_creation = $now;
+				$config->tms = $now;
+				$config->fk_user_modif = $user->id;
+				$config->type = $type;
+				$config->user_id_json = [];
+				$config->group_id_json = [];
+				$config->is_important_group = 0;
+				$config->is_important_user = 0;
+				$config->create($user);
+			} else {
+				// Update tms + fk_user_modif if config exist
+				$row = $this->db->fetch_object($result);
+				$config->fetch($row->rowid); // Charge l'enregistrement existant
+				$config->tms = $now;
+				$config->fk_user_modif = $user->id;
+				$config->update($user);
 
-
+			}
+		} else {
+			$this->errors[] = 'Error ' . $this->db->lasterror();
+			dol_syslog(__METHOD__ . ' ' . join(',', $this->errors), LOG_ERR);
+		}
 	}
+
 
 	/**
 	 * Trigger name
@@ -187,13 +212,13 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 
 			// Products
 			case 'PRODUCT_CREATE':
-				$this->produitCree($action, $object, $user, $langs, $conf);
+				$this->produitCree($action, $object, $user);
 				break;
 			case 'PRODUCT_MODIFY':
-				$this->produitModifie($action, $object, $user, $langs, $conf);
+				$this->produitModifie($action, $object, $user);
 				break;
 			case 'PRODUCT_DELETE':
-				$this->produitSupprime($action, $object, $user, $langs, $conf);
+				$this->produitSupprime($action, $object, $user);
 				break;
 			//case 'PRODUCT_PRICE_MODIFY':
 			//case 'PRODUCT_SET_MULTILANGS':
@@ -370,16 +395,18 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 		return 0;
 	}
 
-	private function produitCree(string $action, Product $object, User $user, Translate $langs, Conf $conf): void
+	private function produitCree(string $action, Product $object, User $user): void
 	{
-		$notif = $this->createNotifs($user, $object, "PRODUCT_CREATE", $user->login . " a créé un produit");
-		if ($notif) {
-			$notif->create($user);
-		}
+
+		$this->creationNotification($user, $object, "PRODUCT_CREATE", $user->login . " a créé un produit");
+
+		$this->creationConfiguration($user, 'PRODUCT_CREATE');
+
 	}
 
-	private function produitModifie(string $action, Product $object, User $user, Translate $langs, Conf $conf): void
+	private function produitModifie(string $action, Product $object, User $user): void
 	{
+		global $db;
 		$text = '';
 
 		// Vérification des anciennes ref et label
@@ -393,17 +420,17 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 			$text .= "Modification d'un prix";
 		}
 
-		$notif = $this->createNotifs($user, $object, "PRODUCT_MODIFY", $text);
-		if ($notif) {
-			$notif->create($user);
-		}
+		$this->creationNotification($user, $object, "PRODUCT_MODIFY", $text);
+
+		$this->creationConfiguration($user, 'PRODUCT_MODIFY');
+
 	}
 
-	private function produitSupprime(string $action, Product $object, User $user, Translate $langs, Conf $conf): void
+
+	private function produitSupprime(string $action, Product $object, User $user): void
 	{
-		$notif = $this->createNotifs($user, $object, "PRODUCT_DELETE", $user->login . " a supprimé un produit");
-		if ($notif) {
-			$notif->create($user);
-		}
+		$this->creationNotification($user, $object, "PRODUCT_DELETE", $user->login . " a supprimé un produit");
+
+		$this->creationConfiguration($user, 'PRODUCT_DELETE');
 	}
 }

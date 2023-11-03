@@ -98,52 +98,25 @@ if (empty($dolibarr_nocache)) {
 
 
 // Faire disparaitre la boite de notifications importantes
-//document.addEventListener('DOMContentLoaded', function() {
-//	let myButtons = document.querySelectorAll('.monBouton');
-//
-//	// Parcourir la liste des boutons et ajout d'un addEventListener à chacun
-//	myButtons.forEach(function(myButton) {
-//		myButton.addEventListener('click', function() {
-//
-//			let box = this.closest('.boite');
-//			if (box) {
-//				box.style.transition = 'opacity 1s ease-in-out';
-//				box.style.opacity = '0';
-//
-//				setTimeout(function() {
-//					box.remove();
-//				}, 1000);
-//			}
-//
-//			// requête AJAX
-//			$.ajax(
-//				{
-//					url: 'custom/moduletest1/ajax/myobject.php',
-//					type: 'GET',
-//					data: {
-//						mode:'updateData',
-//						notification: this.id
-//					},
-//					dataType: 'JSON', // (json, html, etc.)
-//					async: true,
-//					success: function(data) {
-//						// Requête a réussi
-//						console.log('Réponse de la requête :', data);
-//
-//						let resultat = JSON.parse(data);
-//
-//						// Afficher le résultat JSON dans la console
-//						console.log('Résultat JSON :', resultat);
-//
-//					},
-//					error: function(xhr, status, error) {
-//						// En cas d'erreur lors de la requête
-//						console.error('Erreur de requête :', status, error);
-//					}
-//				});
-//		});
-//	});
-//});
+document.addEventListener('DOMContentLoaded', function() {
+	let myButtons = document.querySelectorAll('.monBouton');
+
+	// Parcourir la liste des boutons et ajout d'un addEventListener à chacun
+	myButtons.forEach(function(myButton) {
+		myButton.addEventListener('click', function() {
+
+			let box = this.closest('.boite');
+			if (box) {
+				box.style.transition = 'opacity 1s ease-in-out';
+				box.style.opacity = '0';
+
+				setTimeout(function() {
+					box.remove();
+				}, 1000);
+			}
+		});
+	});
+});
 
 // Animation formulaire en jQuery
 $(document).ready(function() {
@@ -183,44 +156,51 @@ $(document).ready(function() {
 });
 
 
-//// API Intersection Observer pour date d'affichage
-//let elementsToObserve = document.querySelectorAll('.oddeven');
-//
-//// Options de l'observateur d'intersection
-//let options = {
-//	root: elementsToObserve, // Les éléments obsérvés
-//	rootMargin: '0px', // Marge autour de la fenêtre de visualisation
-//	threshold: 1 // Les notifications sont considérées comme visible si 100 % ou plus est visible
-//};
-//
-//// Fonction appelée lorsque l'élément devient visible
-//let handleIntersection = (notifications, observer) => {
-//	notifications.forEach(notification => {
-//		if (notification.isIntersecting) {
-//
-//			// L'élément est maintenant visible
-//			let dateActuelle = new Date();
-//			let dateISO = dateActuelle.toISOString();
-//
-//			// Envoyer la date au serveur en utilisant une requête AJAX
-//			let xhr = new XMLHttpRequest();
-//			xhr.open('POST', 'interface_99_modNotificationsLTDJ_NotificationsLTDJTriggers.class.php', true);
-//			xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-//			xhr.send('date=' + dateISO);
-//
-//			// Arrêtez d'observer cet élément après enregistrement
-//			observer.unobserve(notification.target);
-//		}
-//	});
-//};
-//
-//// Observateur d'intersection
-//let observer = new IntersectionObserver(handleIntersection, options);
-//
-//// Ajoute chaque élément à observer
-//elementsToObserve.forEach(element => {
-//	observer.observe(element);
-//});
+// API Intersection Observer pour date d'affichage
+$(document).ready(function() {
+	// API Intersection Observer pour date d'affichage
+	let elementsToObserve = document.querySelectorAll('[data-notification-id]');
+
+	// Options de l'observateur d'intersection
+	let options = {
+		root: null,
+		rootMargin: '0px', // Marge autour de la fenêtre de visualisation
+		threshold: 1 // Visible si 100 % ou plus est visible
+	};
+
+	// Fonction appelée lorsque l'élément devient visible
+	let handleIntersection = (notifications, observer) => {
+		notifications.forEach(notification => {
+			if (notification.isIntersecting) {
+
+				let dateActuelle = new Date();
+				let notificationId = notification.target.getAttribute('data-notification-id');
+
+				// Envoyer la date au serveur en utilisant une requête AJAX
+				let xhr = new XMLHttpRequest();
+				xhr.open('POST', 'custom/notificationsltdj/core/boxes/notificationsltdjwidget1.php', true);
+				xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+				xhr.send('id=' + notificationId + '& date=' + dateActuelle);
+
+				console.log('Elements to observe:', elementsToObserve);
+				console.log('Notification ID:', notificationId);
+				console.log('Date ISO:', dateActuelle);
+
+				// Arrêtez d'observer cet élément après enregistrement
+				observer.unobserve(notification.target);
+			}
+		});
+	};
+
+	// Observateur d'intersection
+	let observer = new IntersectionObserver(handleIntersection, options);
+
+	// Ajoute chaque élément à observer
+	elementsToObserve.forEach(element => {
+		observer.observe(element);
+	});
+});
+
 
 
 
