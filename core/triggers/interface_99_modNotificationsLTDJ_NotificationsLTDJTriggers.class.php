@@ -66,22 +66,18 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 		$now = dol_now('tzuser');
 		$notif = new Notifs($db);
 
-		if ($notif) {
-			$notif->entity = $user->entity;
-			$notif->ref = $object->ref;
-			$notif->type = $type;
-			$notif->label = addslashes($object->label);
-			$notif->date_creation = $now;
-			$notif->tms = $now;
-			$notif->fk_user_modif = $user->id;
-			$notif->text = $text;
+		$notif->entity = $user->entity;
+		$notif->ref = $object->ref;
+		$notif->type = $type;
+		$notif->label = addslashes($object->label);
+		$notif->date_creation = $now;
+		$notif->tms = $now;
+		$notif->fk_user_modif = $user->id;
+		$notif->text = $text;
 
-			$notif->create($user);
+		$notif->create($user);
 
-			return $notif;
-		} else {
-			throw new \Exception('Erreur lors de la création de la notification');
-		}
+		return $notif;
 	}
 
 	/**
@@ -110,13 +106,16 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 				$config->group_id_json = [];
 				$config->is_important_group = 0;
 				$config->is_important_user = 0;
+
 				$config->create($user);
+
 			} else {
 				// Update tms + fk_user_modif if config exist
 				$row = $this->db->fetch_object($result);
-				$config->fetch($row->rowid); // Charge l'enregistrement existant
+				$config->fetch($row->rowid);
 				$config->tms = $now;
 				$config->fk_user_modif = $user->id;
+
 				$config->update($user);
 
 			}
@@ -125,7 +124,6 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 			dol_syslog(__METHOD__ . ' ' . join(',', $this->errors), LOG_ERR);
 		}
 	}
-
 
 	/**
 	 * Trigger name
@@ -423,6 +421,7 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 		$this->creationNotification($user, $object, "PRODUCT_MODIFY", $text);
 
 		$this->creationConfiguration($user, 'PRODUCT_MODIFY');
+
 
 	}
 
