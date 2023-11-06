@@ -226,6 +226,9 @@ class Config extends CommonObject
 	 */
 	public function create(User $user, $notrigger = false)
 	{
+		$this->user_id_json = json_encode($this->user_id_json);
+		$this->group_id_json = json_encode($this->group_id_json);
+
 		$resultcreate = $this->createCommon($user, $notrigger);
 
 		//$resultvalidate = $this->validate($user, $notrigger);
@@ -346,6 +349,10 @@ class Config extends CommonObject
 		if ($result > 0 && !empty($this->table_element_line)) {
 			$this->fetchLines();
 		}
+
+		$this->user_id_json = json_decode($this->user_id_json);
+		$this->group_id_json = json_decode($this->group_id_json);
+
 		return $result;
 	}
 
@@ -452,6 +459,9 @@ class Config extends CommonObject
 	 */
 	public function update(User $user, $notrigger = false)
 	{
+		$this->user_id_json = json_encode($this->user_id_json);
+		$this->group_id_json = json_encode($this->group_id_json);
+
 		return $this->updateCommon($user, $notrigger);
 	}
 

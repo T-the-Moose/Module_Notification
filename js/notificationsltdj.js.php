@@ -158,7 +158,7 @@ $(document).ready(function() {
 
 // API Intersection Observer pour date d'affichage
 $(document).ready(function() {
-	// API Intersection Observer pour date d'affichage
+
 	let elementsToObserve = document.querySelectorAll('[data-notification-id]');
 
 	// Options de l'observateur d'intersection
@@ -176,7 +176,7 @@ $(document).ready(function() {
 				let dateActuelle = new Date();
 				let notificationId = notification.target.getAttribute('data-notification-id');
 
-				// Envoyer la date au serveur en utilisant une requête AJAX
+				// Envoi de la date au serveur en utilisant une requête AJAX
 				let xhr = new XMLHttpRequest();
 				xhr.open('POST', 'custom/notificationsltdj/core/boxes/notificationsltdjwidget1.php', true);
 				xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
@@ -186,13 +186,13 @@ $(document).ready(function() {
 				console.log('Notification ID:', notificationId);
 				console.log('Date ISO:', dateActuelle);
 
-				// Arrêtez d'observer cet élément après enregistrement
+				// Arrêt d'observation de notificationId après enregistrement
 				observer.unobserve(notification.target);
 			}
 		});
 	};
 
-	// Observateur d'intersection
+	// Instance de IntersectionObserver
 	let observer = new IntersectionObserver(handleIntersection, options);
 
 	// Ajoute chaque élément à observer

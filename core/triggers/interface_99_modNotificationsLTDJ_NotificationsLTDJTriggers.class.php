@@ -63,7 +63,7 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 	private function creationNotification(User $user, $object, $type, $text = ''): Notifs
 	{
 		global $db;
-		$now = dol_now('tzuser');
+		$now = dol_now('tzserver');
 		$notif = new Notifs($db);
 
 		$notif->entity = $user->entity;
@@ -78,51 +78,6 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 		$notif->create($user);
 
 		return $notif;
-	}
-
-	/**
-	 * Creation of the initial configuration
-	 * Factory method for config
-	 */
-	private function creationConfiguration(User $user, string $type): void
-	{
-		$sql = "SELECT rowid FROM " . MAIN_DB_PREFIX . "notificationsltdj_config WHERE type = '" . $this->db->escape($type) . "'";
-		$result = $this->db->query($sql);
-
-		$config = new Config($this->db);
-		$now = dol_now('tzuser');
-
-		if ($result) {
-			$num = $this->db->num_rows($result);
-
-			if ($num === 0) {
-				// Create config if dosen't exist
-				$config->entity = $user->entity;
-				$config->date_creation = $now;
-				$config->tms = $now;
-				$config->fk_user_modif = $user->id;
-				$config->type = $type;
-				$config->user_id_json = [];
-				$config->group_id_json = [];
-				$config->is_important_group = 0;
-				$config->is_important_user = 0;
-
-				$config->create($user);
-
-			} else {
-				// Update tms + fk_user_modif if config exist
-				$row = $this->db->fetch_object($result);
-				$config->fetch($row->rowid);
-				$config->tms = $now;
-				$config->fk_user_modif = $user->id;
-
-				$config->update($user);
-
-			}
-		} else {
-			$this->errors[] = 'Error ' . $this->db->lasterror();
-			dol_syslog(__METHOD__ . ' ' . join(',', $this->errors), LOG_ERR);
-		}
 	}
 
 	/**
@@ -395,11 +350,7 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 
 	private function produitCree(string $action, Product $object, User $user): void
 	{
-
 		$this->creationNotification($user, $object, "PRODUCT_CREATE", $user->login . " a créé un produit");
-
-		$this->creationConfiguration($user, 'PRODUCT_CREATE');
-
 	}
 
 	private function produitModifie(string $action, Product $object, User $user): void
@@ -417,19 +368,12 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 		if ($object->label == $object->oldcopy->label || $object->ref == $object->oldcopy->ref) {
 			$text .= "Modification d'un prix";
 		}
-
 		$this->creationNotification($user, $object, "PRODUCT_MODIFY", $text);
-
-		$this->creationConfiguration($user, 'PRODUCT_MODIFY');
-
-
 	}
 
 
 	private function produitSupprime(string $action, Product $object, User $user): void
 	{
 		$this->creationNotification($user, $object, "PRODUCT_DELETE", $user->login . " a supprimé un produit");
-
-		$this->creationConfiguration($user, 'PRODUCT_DELETE');
 	}
 }

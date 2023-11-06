@@ -83,7 +83,7 @@ if (isset($user->socid) && $user->socid > 0) {
 }
 
 $max = 5;
-$now = dol_now();
+$now = dol_now('tzserver');
 
 
 /*
@@ -194,32 +194,55 @@ echo '<div class="divForm">
 </form>';
 
 
-
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-	//Récupération et encode au format JSON des ids group et user
+	//Récupération ids group et user en array()
 	$arrayUsers = GETPOST('Utilisateur', 'array:restricthtml');
-	$colleguesSelectionnes = json_encode($arrayUsers);
+	$colleguesSelectionnes = $arrayUsers;
 
 	$arrayGroups= GETPOST('Groupe', 'array:restricthtml');
-	$groupesSelectionnes = json_encode($arrayGroups);
+	$groupesSelectionnes = $arrayGroups;
 
-	$actionSelectionnee = $_POST['notif-action'];
+	$type = $_POST['notif-action'];
 
-	$now = dol_now();
+	$sql = "SELECT rowid FROM " . MAIN_DB_PREFIX . "notificationsltdj_config WHERE type = '" . $db->escape($type) . "'";
+	$result = $db->query($sql);
+
 	$config = new Config($db);
+	$now = dol_now('tzserver');
 
-	$config->entity = $user->entity;
-	$config->date_creation = $now;
-	$config->tms = $now;
-	$config->fk_user_modif = $user->id;
-	$config->type = $actionSelectionnee;
-	$config->user_id_json = $colleguesSelectionnes;
-	$config->group_id_json = $groupesSelectionnes;
-	$config->is_important_group = $_POST["is-important-group"] ? 1 : 0;
-	$config->is_important_user = $_POST["is-important-user"] ? 1 : 0;
+	if ($result) {
+		$num = $db->num_rows($result);
 
-	$config->create($user);
+		if ($num === 0) {
+			// Create config if dosen't exist
+			$config->entity = $user->entity;
+			$config->date_creation = $now;
+			$config->tms = $now;
+			$config->fk_user_modif = $user->id;
+			$config->type = $type;
+			$config->user_id_json = $colleguesSelectionnes;
+			$config->group_id_json = $groupesSelectionnes;
+			$config->is_important_group = $_POST["is-important-group"] ? 1 : 0;
+			$config->is_important_user = $_POST["is-important-user"] ? 1 : 0;
+
+			$config->create($user);
+
+		} else {
+			// Update tms + fk_user_modif if config exist
+			$row = $db->fetch_object($result);
+			$config->fetch($row->rowid);
+			$config->tms = $now;
+			$config->fk_user_modif = $user->id;
+
+			$config->update($user);
+
+		}
+	} else {
+		$this->errors[] = 'Error ' . $db->lasterror();
+		dol_syslog(__METHOD__ . ' ' . join(',', $this->errors), LOG_ERR);
+	}
+
 }
 
 $NBMAX = $conf->global->MAIN_SIZE_SHORTLIST_LIMIT;
