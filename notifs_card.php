@@ -236,10 +236,10 @@ $notificationsByAction = array(
 );
 
 foreach ($notiffications as $item) {
-	$actionNotifs = $item->action;
+	$actionNotifs = $item->type;
 	$refProduit = $item->ref;
 
-	// recherche la ref en URL d'un article
+	// Recherche la ref en URL d'un article
 	if ($produit->fetch('', $refProduit)) {
 		$refProduit = $produit->getNomUrl(1);
 	}
@@ -252,7 +252,7 @@ foreach ($notiffications as $item) {
 //			'Action' => $item->action,
 			'Modification' => $item->text,
 //			'Créé par' => $item->fk_user_creat,
-			'Modifié par' => $item->user_modif,
+			'Modifié par' => $item->fk_user_modif,
 		);
 		$notificationsByAction[$actionNotifs][] = $notificationData;
 	}

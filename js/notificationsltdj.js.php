@@ -96,7 +96,6 @@ if (empty($dolibarr_nocache)) {
 
 /* Javascript library of module NotificationsLTDJ */
 
-
 // Faire disparaitre la boite de notifications importantes
 document.addEventListener('DOMContentLoaded', function() {
 	let myButtons = document.querySelectorAll('.monBouton');
@@ -173,18 +172,23 @@ $(document).ready(function() {
 		notifications.forEach(notification => {
 			if (notification.isIntersecting) {
 
-				let dateActuelle = new Date();
-				let notificationId = notification.target.getAttribute('data-notification-id');
+				let dateActuelle = new Date().toISOString();
+				let formData = new FormData();
+				formData.append('date', dateActuelle);
 
 				// Envoi de la date au serveur en utilisant une requête AJAX
 				let xhr = new XMLHttpRequest();
-				xhr.open('POST', 'custom/notificationsltdj/core/boxes/notificationsltdjwidget1.php', true);
-				xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-				xhr.send('id=' + notificationId + '& date=' + dateActuelle);
+				xhr.open('POST', 'core/triggers/interface_99_modNotificationsLTDJ_NotificationsLTDJTriggers.class.php', true);
 
-				console.log('Elements to observe:', elementsToObserve);
-				console.log('Notification ID:', notificationId);
-				console.log('Date ISO:', dateActuelle);
+				xhr.onload = function () {
+					if (xhr.status >= 200 && xhr.status < 300) {
+						console.log('Requête AJAX réussie');
+					} else {
+						console.error('Erreur de la requête AJAX');
+					}
+				};
+
+				xhr.send(formData);
 
 				// Arrêt d'observation de notificationId après enregistrement
 				observer.unobserve(notification.target);
@@ -200,6 +204,7 @@ $(document).ready(function() {
 		observer.observe(element);
 	});
 });
+
 
 
 

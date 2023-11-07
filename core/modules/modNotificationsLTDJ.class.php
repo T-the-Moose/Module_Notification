@@ -390,6 +390,26 @@ class modNotificationsLTDJ extends DolibarrModules
             // 0=Menu for internal users, 1=external users, 2=both
             'user'=>2
         );
+		$this->menu[$r++]=array(
+			// '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+			'fk_menu'=>'fk_mainmenu=notificationsltdj,fk_leftmenu=notificationsltdj_notifs',
+			// This is a Left menu entry
+			'type'=>'left',
+			'titre'=>'Panneau de configuration',
+			'mainmenu'=>'notificationsltdj',
+			'leftmenu'=>'notificationsltdj_notifs',
+			'url'=>'/notificationsltdj//notificationsltdjindex.php',
+			// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+			'langs'=>'notificationsltdj@notificationsltdj',
+			'position'=>1100+$r,
+			// Define condition to show or hide menu entry. Use '$conf->notificationsltdj->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+			'enabled'=>'$conf->notificationsltdj->enabled',
+			// Use 'perms'=>'$user->rights->notificationsltdj->level1->level2' if you want your menu with a permission rules
+			'perms'=>'1',
+			'target'=>'',
+			// 0=Menu for internal users, 1=external users, 2=both
+			'user'=>2
+		);
 
 		/* END MODULEBUILDER LEFTMENU NOTIFS */
 		// Exports profiles provided by this module

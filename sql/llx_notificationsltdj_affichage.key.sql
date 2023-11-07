@@ -17,7 +17,6 @@
 -- BEGIN MODULEBUILDER INDEXES
 ALTER TABLE llx_notificationsltdj_affichage ADD INDEX idx_notificationsltdj_affichage_rowid (rowid);
 ALTER TABLE llx_notificationsltdj_affichage ADD CONSTRAINT llx_notificationsltdj_affichage_fk_user_creat FOREIGN KEY (fk_user_creat) REFERENCES llx_user(rowid);
-ALTER TABLE llx_notificationsltdj_affichage ADD INDEX idx_notificationsltdj_affichage_id_user (id_user);
 ALTER TABLE llx_notificationsltdj_affichage ADD INDEX idx_notificationsltdj_affichage_id_notif (id_notif);
 -- END MODULEBUILDER INDEXES
 

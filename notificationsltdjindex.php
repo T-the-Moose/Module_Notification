@@ -107,7 +107,7 @@ llxHeader("", $langs->trans("Notifications LTDJArea"));
 //print load_fiche_titre($langs->trans("NotificationsLTDJArea"), '', 'notificationsltdj.png@notificationsltdj');
 
 echo '<div class="divForm">
-<h2 class="titreForm">Envoyez la notification importante à un groupe et/ou à des collègues</h2>
+<h2 class="titreForm">Panneau de configuration des notifications</h2>
 
 <form id="formulaireNotification" method="POST">
 	<fieldset>
@@ -136,16 +136,14 @@ echo '<div class="divForm">
 							include_once (DOL_DOCUMENT_ROOT.'/custom/multicompany/class/dao_multicompany.class.php');
 							$mc = new DaoMulticompany($db);
 							$groupList = $mc->getListOfGroups();
+
+							$offset = 0;
 							if ($groupList) {
-								$groupList[0] = 'Direction';
-								$groupList[1] = 'Responsables';
-								$groupList[2] = 'Vendeurs/Caissiers';
-								$groupList[3] = 'Vendeurs Permanents';
-								$groupList[4] = 'Technique';
-							}
-						} else {
-							while ($row = $db->fetch_object($result)) {
-								$groupList[$row->rowid] = $row->nom;
+								while ($row = $db->fetch_object($result)) {
+									$groupList[$offset] = $row->nom;
+									$groupPositionId[$offset] = $row->rowid;
+									$offset++;
+								}
 							}
 						}
 						echo $form->multiselectarray('Groupe', $groupList, $preSelected, 0, null, null, null, "300%");
@@ -200,8 +198,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 	$arrayUsers = GETPOST('Utilisateur', 'array:restricthtml');
 	$colleguesSelectionnes = $arrayUsers;
 
-	$arrayGroups= GETPOST('Groupe', 'array:restricthtml');
-	$groupesSelectionnes = $arrayGroups;
+	$arrayGroups = GETPOST('Groupe', 'array:restricthtml');
+	$groupesSelectionnes = array();
+
+	// Extraction des ids group
+	foreach ($arrayGroups as $position) {
+		if ($groupPositionId[$position]) {
+			$groupesSelectionnes[] = $groupPositionId[$position];
+		}
+	}
 
 	$type = $_POST['notif-action'];
 
@@ -233,10 +238,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 			$row = $db->fetch_object($result);
 			$config->fetch($row->rowid);
 			$config->tms = $now;
+			$config->user_id_json = $colleguesSelectionnes;
+			$config->group_id_json = $groupesSelectionnes;
 			$config->fk_user_modif = $user->id;
 
 			$config->update($user);
-
 		}
 	} else {
 		$this->errors[] = 'Error ' . $db->lasterror();
