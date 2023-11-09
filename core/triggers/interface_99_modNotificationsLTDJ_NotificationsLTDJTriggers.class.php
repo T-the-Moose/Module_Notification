@@ -68,13 +68,13 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 		$notif = new Notifs($db);
 
 		$notif->entity = $user->entity;
-		$notif->ref = $object->ref;
+		$notif->ref = $db->escape($object->ref);
 		$notif->type = $type;
-		$notif->label = addslashes($object->label);
+		$notif->label = $db->escape(addslashes($object->label));
 		$notif->date_creation = $now;
 		$notif->tms = $now;
 		$notif->fk_user_modif = $user->id;
-		$notif->text = $text;
+		$notif->text = $db->escape($text);
 
 		$notif->create($user);
 
@@ -102,25 +102,30 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 			$configImportantUser = $item->is_important_user;
 
 			if ($configType === $action) {
+				$userIdDecode = json_decode($configUserIdJson, true);
 
-				$affichage = new Affichage($db);
-				$affichage->date_creation = $now;
-				$affichage->tms = $now;
-				$affichage->fk_user_modif = $configUserModif;
+				foreach ($userIdDecode as $userId) {
+					$affichage = new Affichage($db);
+					$affichage->date_creation = $now;
+					$affichage->tms = $now;
+					$affichage->fk_user_modif = $configUserModif;
 
-				if ($configImportantGroup == 1 || $configImportantUser == 1) {
-					$affichage->is_important = 1;
-				} else {
-					$affichage->is_important = 0;
+					$userIdsInGroups = get($configGroupIdJson);
+
+					if ($configImportantGroup == 1 || $configImportantUser == 1) {
+						$affichage->is_important = 1;
+					} else {
+						$affichage->is_important = 0;
+					}
+
+//					$affichage->id_user = $configGroupIdJson;
+					$affichage->id_user .= $userId;
+
+					// Fetch l'id de la dernière notification
+					$affichage->id_notif = $dernierIdNotif;
+
+					$affichage->create($user);
 				}
-
-				$affichage->id_user = $configGroupIdJson;
-				$affichage->id_user .= $configUserIdJson;
-
-				// Fetch l'id de la dernière notification
-				$affichage->id_notif = $dernierIdNotif;
-
-				$affichage->create($user);
 			}
 		}
 

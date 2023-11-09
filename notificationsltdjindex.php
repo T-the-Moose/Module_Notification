@@ -76,6 +76,7 @@ $action = GETPOST('action', 'aZ09');
 // if (! $user->rights->notificationsltdj->myobject->read) {
 // 	accessforbidden();
 // }
+
 $socid = GETPOST('socid', 'int');
 if (isset($user->socid) && $user->socid > 0) {
 	$action = '';
