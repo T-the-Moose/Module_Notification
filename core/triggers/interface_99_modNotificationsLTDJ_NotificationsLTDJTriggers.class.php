@@ -33,6 +33,7 @@
 require_once DOL_DOCUMENT_ROOT.'/core/triggers/dolibarrtriggers.class.php';
 require_once DOL_DOCUMENT_ROOT.'/custom/notificationsltdj/core/boxes/notificationsltdjwidget1.php';
 require_once DOL_DOCUMENT_ROOT.'/custom/notificationsltdj/class/affichage.class.php';
+require_once DOL_DOCUMENT_ROOT.'/user/class/usergroup.class.php';
 
 /**
  *  Class of triggers for NotificationsLTDJ module
@@ -102,28 +103,46 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 			$configImportantUser = $item->is_important_user;
 
 			if ($configType === $action) {
-				$userIdDecode = json_decode($configUserIdJson, true);
+				$idUtilisateurDecode = json_decode($configUserIdJson, true);
+				$idGroupeDecode = json_decode($configGroupIdJson, true);
 
-				foreach ($userIdDecode as $userId) {
+				$idUniqueUtilisateur = [];
+
+				foreach ($idGroupeDecode as $groupeId) {
+					$userGroup = new UserGroup($db);
+					$userGroup->fetch($groupeId);
+					$utilisateursDansGroupes = $userGroup->listUsersForGroup();
+
+					foreach ($utilisateursDansGroupes as $utilisateurDansUnGroupe) {
+						$idUniqueUtilisateur[] = $utilisateurDansUnGroupe->id;
+					}
+				}
+
+				// Fusion des deux tableaux d'Ids
+				$idUniqueUtilisateur = array_merge($idUniqueUtilisateur, $idUtilisateurDecode);
+
+				// Élimine les doublons
+				$idUniqueUtilisateur = array_unique($idUniqueUtilisateur);
+
+				foreach ($idUniqueUtilisateur as $userId) {
 					$affichage = new Affichage($db);
 					$affichage->date_creation = $now;
 					$affichage->tms = $now;
 					$affichage->fk_user_modif = $configUserModif;
 
-					$userIdsInGroups = get($configGroupIdJson);
-
-					if ($configImportantGroup == 1 || $configImportantUser == 1) {
-						$affichage->is_important = 1;
+					// Vérifie si l'id de l'utilisateur fait partie d'un groupe
+					if (in_array($userId, $idUtilisateurDecode)) {
+						// L'utilisateur fait partie des utilisateurs individuels
+						$affichage->is_important = $configImportantUser == 1 ? 1 : 0;
 					} else {
-						$affichage->is_important = 0;
+						// L'utilisateur fait partie des utilisateurs dans un groupe
+						$affichage->is_important = $configImportantGroup == 1 ? 1 : 0;
 					}
 
-//					$affichage->id_user = $configGroupIdJson;
-					$affichage->id_user .= $userId;
-
-					// Fetch l'id de la dernière notification
+					// Fetch l'id de la dernière notification en signature de fonction
 					$affichage->id_notif = $dernierIdNotif;
 
+					$affichage->id_user = $userId;
 					$affichage->create($user);
 				}
 			}
