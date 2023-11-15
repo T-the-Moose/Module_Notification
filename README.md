@@ -1,6 +1,6 @@
 # Module de notifications
 
-Ce module propose un service d'envoi de notifications à un ou plusieurs utilisateurs, ainsi qu'à des 
+Ce module propose un service d'envoi de notifications à un ou plusieurs utilisateurs, ainsi que pour des 
 utilisateurs faisant partie de l'un des différents groupes LTDJ.
 
 ## Trigger - déclencheur
