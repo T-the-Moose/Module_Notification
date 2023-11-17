@@ -33,6 +33,7 @@
 require_once DOL_DOCUMENT_ROOT.'/core/triggers/dolibarrtriggers.class.php';
 require_once DOL_DOCUMENT_ROOT.'/custom/notificationsltdj/core/boxes/notificationsltdjwidget1.php';
 require_once DOL_DOCUMENT_ROOT.'/custom/notificationsltdj/class/affichage.class.php';
+require_once DOL_DOCUMENT_ROOT.'/custom/notificationsltdj/class/config.class.php';
 require_once DOL_DOCUMENT_ROOT.'/user/class/usergroup.class.php';
 
 /**
@@ -65,15 +66,15 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 	private function creationNotification(User $user, $object, $type, $text = ''): Notifs
 	{
 		global $db;
-		$now = dol_now('tzserver');
+		$dateDuJour = dol_now('tzserver');
 		$notif = new Notifs($db);
 
 		$notif->entity = $user->entity;
 		$notif->ref = $db->escape($object->ref);
 		$notif->type = $type;
 		$notif->label = $db->escape(addslashes($object->label));
-		$notif->date_creation = $now;
-		$notif->tms = $now;
+		$notif->date_creation = $dateDuJour;
+		$notif->tms = $dateDuJour;
 		$notif->fk_user_modif = $user->id;
 		$notif->text = $db->escape($text);
 
@@ -89,22 +90,22 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 	private function manageNotification($action, $object, $user, $dernierIdNotif) {
 
 		global $db;
-		$now = dol_now('tzserver');
+		$dateDuJour = dol_now('tzserver');
 
 		$config = new Config($db);
 		$configuration = $config->fetchAll();
 
 		foreach ($configuration as $item) {
 			$configType = $item->type;
-			$configUserModif = $item->fk_user_modif;
-			$configGroupIdJson = $item->group_id_json;
-			$configUserIdJson = $item->user_id_json;
-			$configImportantGroup = $item->is_important_group;
-			$configImportantUser = $item->is_important_user;
+			$configUtilisateurModif = $item->fk_user_modif;
+			$configGroupeIdJson = $item->group_id_json;
+			$configUtilisateurIdJson = $item->user_id_json;
+			$configImportantGroupe = $item->is_important_group;
+			$configImportantUtilisateur = $item->is_important_user;
 
 			if ($configType === $action) {
-				$idUtilisateurDecode = json_decode($configUserIdJson, true);
-				$idGroupeDecode = json_decode($configGroupIdJson, true);
+				$idUtilisateurDecode = json_decode($configUtilisateurIdJson, true);
+				$idGroupeDecode = json_decode($configGroupeIdJson, true);
 
 				$idUniqueUtilisateur = [];
 
@@ -126,18 +127,17 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 
 				foreach ($idUniqueUtilisateur as $userId) {
 					$affichage = new Affichage($db);
-					$affichage->date_creation = $now;
-					$affichage->tms = $now;
-					$affichage->fk_user_modif = $configUserModif;
+					$affichage->date_creation = $dateDuJour;
+					$affichage->tms = $dateDuJour;
+					$affichage->fk_user_modif = $configUtilisateurModif;
 
-					// Vérifie si l'id de l'utilisateur fait partie d'un groupe
-					if (in_array($userId, $idUtilisateurDecode)) {
-						// L'utilisateur fait partie des utilisateurs individuels
-						$affichage->is_important = $configImportantUser == 1 ? 1 : 0;
-					} else {
-						// L'utilisateur fait partie des utilisateurs dans un groupe
-						$affichage->is_important = $configImportantGroup == 1 ? 1 : 0;
-					}
+					// Vérifie si l'id de l'utilisateur fait partie des utilisateurs individuels
+					$isUserImportant = in_array($userId, $idUtilisateurDecode) && $configImportantUtilisateur == 1;
+
+					// Vérifie si l'id de l'utilisateur fait partie des utilisateurs d'un groupe
+					$isGroupImportant = in_array($userId, $idGroupeDecode) && $configImportantGroupe == 1;
+
+					$affichage->is_important = $isUserImportant || $isGroupImportant ? 1 : 0;
 
 					// Fetch l'id de la dernière notification en signature de fonction
 					$affichage->id_notif = $dernierIdNotif;
@@ -147,8 +147,6 @@ class InterfaceNotificationsLTDJTriggers extends DolibarrTriggers
 				}
 			}
 		}
-
-		// Afficher la notification
 	}
 
 

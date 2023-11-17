@@ -27,7 +27,7 @@
 
 include_once DOL_DOCUMENT_ROOT."/core/boxes/modules_boxes.php";
 require_once DOL_DOCUMENT_ROOT."/custom/notificationsltdj/class/notifs.class.php";
-require_once DOL_DOCUMENT_ROOT."/custom/notificationsltdj/class/config.class.php";
+require_once DOL_DOCUMENT_ROOT."/custom/notificationsltdj/class/affichage.class.php";
 
 /**
  * Class to manage the box
@@ -79,7 +79,7 @@ class notificationsltdjwidget1 extends ModeleBoxes
 	public $info_box_contents = array();
 
 	/**
-	 * @var string 	Widget type ('graph' means the widget is a graph widget)
+	 * @var string    Widget type ('graph' means the widget is a graph widget)
 	 */
 	public $widgettype = 'graph';
 
@@ -92,7 +92,7 @@ class notificationsltdjwidget1 extends ModeleBoxes
 	 */
 	public function __construct(DoliDB $db, $param = '')
 	{
-		global $langs;
+		global $user, $conf, $langs;
 		// Translations
 		$langs->loadLangs(array("boxes", "notificationsltdj@notificationsltdj"));
 
@@ -107,22 +107,6 @@ class notificationsltdjwidget1 extends ModeleBoxes
 	}
 
 	/**
-	 * Managing notifications for box
-	 *
-	 */
-	public function manageNotifications() {
-
-		global $db;
-
-		$datePremierAffichage = $_POST['date'];
-
-		// Préparez la requête SQL pour insérer la date dans la base de données
-		$sql = "INSERT INTO llx_notificationsltdj_affichage (first_display) VALUES ('$datePremierAffichage')";
-		$result = $db->query($sql);
-
-	}
-
-	/**
 	 * Load data into info_box_contents array to show array later. Called by Dolibarr before displaying the box.
 	 *
 	 * @param int $max Maximum number of records to load
@@ -130,18 +114,16 @@ class notificationsltdjwidget1 extends ModeleBoxes
 	 */
 	public function loadBox($max = 5)
 	{
-		global $langs, $db;
+		global $langs, $user, $db;
 
 		// Use configuration value for max lines count
 		$this->max = $max;
 
-		//dol_include_once("/notifications/class/notifications.class.php");
-
 		// Populate the head at runtime
-		$text = $langs->trans("Notification(s) importante(s)", $max);
+		$text = $langs->trans("Boîte de notification(s)", $max);
 		$this->info_box_head = array(
 			// Title text
-			'text' => '<p class="bold" style=color:red;">!! ' .$text .' !!</p>',
+			'text' => '<p class="bold" style=color:red;"> ' .$text .'</p>',
 			// Add a link
 //			'sublink' => 'http://example.com',
 			// Sublink icon placed after the text
@@ -158,96 +140,114 @@ class notificationsltdjwidget1 extends ModeleBoxes
 			'graph' => false
 		);
 
-		$produit = new Product($db);
+		$affichage = new Affichage($db);
+		$affichageNotifications = $affichage->fetchAll();
 
-		$notificationProduit = new Notifs($db);
-		$notifs = $notificationProduit->fetchAll();
 
-		// Vérifier s'il y a des résultats
-		if ($notifs > 0) {
+		if (!empty($affichageNotifications)) {
 
 			// Créer un tableau pour stocker les lignes de la boîte
 			$info_box_contents = array();
 
-			$product_info2 = array(
+			$product_info = array(
 				0 => array(
 					'tr' => 'class="center bold" style="color:mediumblue;"',
-					'text' => 'Action',
+					'text' => 'Référence',
 				),
 				1 => array(
 					'tr' => 'class="center bold"',
-					'text' => 'Réference',
+					'text' => 'Nom du produit',
 				),
 				2 => array(
-					'tr' => 'class="center bold" ',
+					'tr' => 'class="center bold"',
 					'text' => 'Modification',
 				),
 				3 => array(
-					'tr' => 'class="center bold"',
-					'text' => 'Action',
+					'tr' => 'class="center bold" ',
+					'text' => 'Type de notification',
 				),
 				4 => array(
 					'tr' => 'class="center bold"',
-					'text' => 'Validation',
+					'text' => 'Utilisateur modificateur',
 				),
 			);
 
-			$info_box_contents[] = $product_info2;
+			$info_box_contents[] = $product_info;
 
-			// Parcourir les résultats
-			foreach ($notifs as $notif) {
-				// Accéder aux colonnes de chaque ligne
-				$ref_produit = $notif->ref;
-				$id_notification = $notif->id;
-				$utilisateur_modificateur = $notif->fk_user_modif;
-				$text_modification = $notif->text;
+			foreach ($affichageNotifications as $affichageNotifs) {
+				$idUtilisateurAffichage = $affichageNotifs->id_user;
+				$idNotificationAffichage = $affichageNotifs->id_notif;
 
-				if ($notif->type === 'PRODUCT_CREATE') {
-					$notif_action = "Produit créé";
-				} else if ($notif->type === 'PRODUCT_MODIFY') {
-					$notif_action = "Produit modifié";
-				} else if ($notif->type === 'PRODUCT_DELETE') {
-					$notif_action = "Produit supprimé";
+				$importanceNotification = $affichageNotifs->is_important;
+
+				// Vérification si l'utilisateur connecté correspond à un id_user dans la table affichage
+				if ($idUtilisateurAffichage === $user->id) {
+
+					$notifs = new Notifs($db);
+					$notificationDetails = $notifs->fetchAll($idNotificationAffichage);
+
+					$produit = new Product($db);
+
+					foreach ($notificationDetails as $notifs) {
+
+						$ref_produit = $notifs->ref;
+						$id_notification = $notifs->id;
+						$nomDuProduit = $notifs->label;
+						$utilisateurModificateur = $notifs->fk_user_modif;
+						$texteModification = $notifs->text;
+
+						if ($notifs->type === 'PRODUCT_CREATE') {
+							$notif_action = "Produit créé";
+						} else if ($notifs->type === 'PRODUCT_MODIFY') {
+							$notif_action = "Produit modifié";
+						} else if ($notifs->type === 'PRODUCT_DELETE') {
+							$notif_action = "Produit supprimé";
+						}
+
+						// Afficher le lien de la ref produit avec getNomUrl()
+						if ($produit->fetch('', $ref_produit)) {
+							$ref_produit = $produit->getNomUrl(1);
+						}
+
+						$importanceNotif = ($importanceNotification == 1) ? 'important-notification' : '';
+
+						$info_box_contents[] = array(
+							0 => array(
+								'td' => 'class="center ' . $importanceNotif . '" data-notification-id="' . $id_notification . '"',
+								'text' => $ref_produit,
+								'asis' => 1,
+							),
+							1 => array(
+								'td' => 'class="center ' . $importanceNotif . '"',
+								'text' => $nomDuProduit,
+							),
+							2 => array(
+								'td' => 'class="center ' . $importanceNotif . '"',
+								'text' => $texteModification,
+							),
+							3 => array(
+								'td' => 'class="center ' . $importanceNotif . '"',
+								'text' => $notif_action,
+							),
+							4 => array(
+								'td' => 'class="center ' . $importanceNotif . '"',
+								'text' => $utilisateurModificateur,
+							),
+						);
+					}
 				}
-
-				// Afficher le lien de la ref produit avec getNomUrl()
-				if ($produit->fetch('', $ref_produit)) {
-					$ref_produit = $produit->getNomUrl(1);
-				}
-				// Créer un tableau pour stocker les informations de chaque produit
-				$product_info = array(
-					0 => array(
-						'td' => 'class="center"',
-						'text' => $notif_action,
-					),
-					1 => array(
-						'td' => 'class="center"' . "data-notification-id=" . $id_notification . " data-iso-date=" . date('c'),
-						'text' => $ref_produit,
-						'asis' => 1,
-					),
-					2 => array(
-						'td' => 'class="center"',
-						'text' => $utilisateur_modificateur,
-					),
-					3 => array(
-						'td' => 'class="center"',
-						'text' => $text_modification,
-					),
-					4 => array(
-						'td' => 'class="monBouton center"' . "id=" . $id_notification,
-						'text' => '<span><i class="fa fa-check"></i></span>',
-					),
-				);
-				// Ajout des informations du produit au tableau de la boxe
-				$info_box_contents[] = $product_info;
-
 			}
+
+
 			// Affecte le tableau d'informations à la boxe
 			$this->info_box_contents = $info_box_contents;
 		} else {
+			// Aucune donnée trouvée dans la table.
 			echo "Aucune donnée trouvée dans la table.";
 		}
 	}
+
+
 
 	/**
 	 * Method to show box. Called by Dolibarr eatch time it wants to display the box.

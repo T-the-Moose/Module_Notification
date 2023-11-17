@@ -72,8 +72,8 @@ $langs->loadLangs(array("notificationsltdj@notificationsltdj"));
 $action = GETPOST('action', 'aZ09');
 
 
-// Security check
-// if (! $user->rights->notificationsltdj->myobject->read) {
+//// Security check
+// if (!$user->rights->notificationsltdj->myobject->read) {
 // 	accessforbidden();
 // }
 
@@ -153,7 +153,7 @@ echo '<div class="divForm">
 					echo '</div>
 				</div>
 				<div class="div-switch">
-					<p>Est ce une notification importante ?</p>
+					<p>Est ce une notification importante pour le(s) groupe(s) ?</p>
 					<span style="color:#cccccc;">Pas important <i class="fas fa-arrow-right"></i> </span>
 					<label class="switch">
 					  	<input type="checkbox" name="is-important-group" value="1" checked>
@@ -165,7 +165,7 @@ echo '<div class="divForm">
 
 			<div class="switch-user">
 				<div class="div-group-select2">
-					<p class="label">Envoyez la notification à un ou plusieurs collègues :</p>
+					<p class="label">Séléctionnez un ou plusieurs collègues :</p>
 					<div class="liste-collegue">';
 						echo '<td class="tdoverflowmax200">';
 						$userList = $form->select_dolusers('', 'userList', 0, null, 0, '', '', 0, 0, 0, '', 0, '', '', 0, 1);
@@ -176,7 +176,7 @@ echo '<div class="divForm">
 				</div>
 
 				<div class="div-switch">
-					<p>Est-ce une notification importante ?</p>
+					<p>Est-ce une notification importante pour le(s) collègue(s) ?</p>
 					<span style="color:#cccccc;">Pas important <i class="fas fa-arrow-right"></i> </span>
 					<label class="switch">
 					  	<input type="checkbox" name="is-important-user" value="1" checked>
@@ -215,12 +215,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 	$result = $db->query($sql);
 
 	$config = new Config($db);
-	$now = dol_now('tzserver');
 
 	if ($result) {
 		$num = $db->num_rows($result);
 
 		if ($num === 0) {
+			$now = dol_now('tzserver');
 			// Create config if dosen't exist
 			$config->entity = $user->entity;
 			$config->date_creation = $now;
@@ -235,13 +235,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 			$config->create($user);
 
 		} else {
-			// Update tms + fk_user_modif if config exist
+			$now = dol_now('tzserver');
 			$row = $db->fetch_object($result);
 			$config->fetch($row->rowid);
 			$config->tms = $now;
 			$config->user_id_json = $colleguesSelectionnes;
 			$config->group_id_json = $groupesSelectionnes;
 			$config->fk_user_modif = $user->id;
+			$config->is_important_group = $_POST["is-important-group"] ? 1 : 0;
+			$config->is_important_user = $_POST["is-important-user"] ? 1 : 0;
 
 			$config->update($user);
 		}

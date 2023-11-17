@@ -168,7 +168,7 @@ div.mainmenu.notificationsltdj {
 	column-count: 4;
 }
 
-/* Style optionnel pour les éléments de la liste (étirez-les pour remplir les colonnes) */
+/****************** Style optionnel pour les éléments de la liste  ************************/
 .liste-collegue label {
 	display: block;
 }
@@ -340,3 +340,6 @@ input:checked + .slider:before {
 	margin-top: 0;
 }
 
+.important-notification {
+	background-color: #ff6b6b;
+}
